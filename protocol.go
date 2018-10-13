@@ -102,7 +102,7 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 	key, err = phe.CheckResponseAndDecrypt([]byte(password), rec.Enrollment, resp.Response)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error while requesting service")
+		return nil, errors.Wrap(err, "error after requesting service")
 	}
 
 	if len(key) == 0 {

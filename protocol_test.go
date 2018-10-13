@@ -2,49 +2,53 @@ package passw0rd
 
 import (
 	"encoding/base64"
+	"github.com/stretchr/testify/require"
 	"testing"
 
-	phe "github.com/passw0rd/phe-go"
-	"github.com/stretchr/testify/assert"
+	"github.com/passw0rd/phe-go"
 )
 
 func TestProtocol_EnrollAccount(t *testing.T) {
+
+	require := require.New(t)
+
 	priv := phe.GenerateClientKey()
 	privStr := base64.StdEncoding.EncodeToString(priv)
-	pubStr := "eyJwdWJsaWNfa2V5IjoiQk1GOXVaR3hvY3dYR0U3a0ZFMDlOeHptandrTTk4aEFQQUVKRHh4OHpmVk1OcCs0anhJbEl4dTZLQXE4eTBVSkhhMTIzSVhUQ0duQjBscVRIUnNLYktNPSIsInZlcnNpb24iOjF9"
+	pubStr := "eyJwdWJsaWNfa2V5IjoiQkFRSlM0NHpwN2l2WG1tVlFxUjNWUnZNbmRWb09hSjFWcGRFVGRQUnB6TnozdXVqbjhnd1ZHU0JLVzVsS1FpcWFnaTU5VUVqR1YzMk9OVXZsWVg3a3kwPSIsInZlcnNpb24iOjF9"
 	token1 := "eyJ1cGRhdGVfdG9rZW4iOnsiYSI6Ik5jQW9yWXdvU0tOL3l1L2dOblZGUVY0REdHaXhlVG9jKzBxZ1lxRlZqOG89IiwiYiI6IjlRei9PVTdWdXpkY2EyZUtTeEpvbEVqaTdWcTVHNTVpNWpCWTQ0QVovVVk9In0sInZlcnNpb24iOjJ9"
 	appId := "307f21b4cdbd4de6ac88362817e6cd94"
 
 	context, err := CreateContext(appId, privStr, pubStr)
-	assert.NoError(t, err)
+	require.NoError(err)
 
 	proto, err := NewProtocol(context)
-	assert.NoError(t, err)
+	require.NoError(err)
 
-	rec, key, err := proto.EnrollAccount("p@ssw0Rd")
-	assert.NoError(t, err)
-	assert.True(t, len(rec) > 0)
-	assert.True(t, len(key) == 32)
+	const pwd = "p@ssw0Rd"
+	rec, key, err := proto.EnrollAccount(pwd)
+	require.NoError(err)
+	require.True(len(rec) > 0)
+	require.True(len(key) == 32)
 
-	key1, err := proto.VerifyPassword("p@ssw0Rd", rec)
-	assert.NoError(t, err)
-	assert.Equal(t, key, key1)
+	key1, err := proto.VerifyPassword(pwd, rec)
+	require.NoError(err)
+	require.Equal(key, key1)
 
-	key2, err := proto.VerifyPassword("passw0Rd", rec)
-	assert.EqualError(t, err, ErrInvalidPassword.Error())
-	assert.Nil(t, key2)
+	key2, err := proto.VerifyPassword("p@ss", rec)
+	require.EqualError(err, ErrInvalidPassword.Error())
+	require.Nil(key2)
 
 	//rotate happened
 	context, err = CreateContext(appId, privStr, pubStr, token1)
-	assert.NoError(t, err)
+	require.NoError(err)
 	proto, err = NewProtocol(context)
-	assert.NoError(t, err)
+	require.NoError(err)
 
 	newRec, err := proto.UpdateEnrollmentRecord(rec)
-	assert.NoError(t, err)
+	require.NoError(err)
 
-	key3, err := proto.VerifyPassword("p@ssw0Rd", newRec)
-	assert.NoError(t, err)
-	assert.Equal(t, key, key3)
+	key3, err := proto.VerifyPassword(pwd, newRec)
+	require.NoError(err)
+	require.Equal(key, key3)
 
 }
