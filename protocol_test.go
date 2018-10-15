@@ -15,7 +15,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	priv := phe.GenerateClientKey()
 	privStr := base64.StdEncoding.EncodeToString(priv)
 	pubStr := "eyJwdWJsaWNfa2V5IjoiQkFRSlM0NHpwN2l2WG1tVlFxUjNWUnZNbmRWb09hSjFWcGRFVGRQUnB6TnozdXVqbjhnd1ZHU0JLVzVsS1FpcWFnaTU5VUVqR1YzMk9OVXZsWVg3a3kwPSIsInZlcnNpb24iOjF9"
-	token1 := "eyJ1cGRhdGVfdG9rZW4iOnsiYSI6Ik5jQW9yWXdvU0tOL3l1L2dOblZGUVY0REdHaXhlVG9jKzBxZ1lxRlZqOG89IiwiYiI6IjlRei9PVTdWdXpkY2EyZUtTeEpvbEVqaTdWcTVHNTVpNWpCWTQ0QVovVVk9In0sInZlcnNpb24iOjJ9"
+	token1 := "eyJ1cGRhdGVfdG9rZW4iOnsiYSI6IkFTOHUxTnk1YjZjS1dPN3BuS1NoVjQrRW5SYlVFQnVKcUZmUDFzaGorUk09IiwiYiI6Im9HL0NybWJxazNxNWdLcEdkajg5bFhSUjJjZWRmdy9tUU14TVVHcFJscE09In0sInZlcnNpb24iOjJ9"
 	appId := "307f21b4cdbd4de6ac88362817e6cd94"
 
 	context, err := CreateContext(appId, privStr, pubStr)

@@ -5,7 +5,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/passw0rd/passw0rd-sdk-go/common"
+	"github.com/passw0rd/sdk-go/common"
 )
 
 type APIClient struct {
