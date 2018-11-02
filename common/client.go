@@ -62,7 +62,7 @@ type VirgilHTTPClient struct {
 	once    sync.Once
 }
 
-func (vc *VirgilHTTPClient) Send(method string, urlPath string, payload interface{}, respObj interface{}) (headers http.Header, err error) {
+func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, payload interface{}, respObj interface{}) (headers http.Header, err error) {
 	var body []byte
 	if payload != nil {
 		body, err = json.Marshal(payload)
@@ -77,13 +77,17 @@ func (vc *VirgilHTTPClient) Send(method string, urlPath string, payload interfac
 	}
 
 	u.Path = path.Join(u.Path, urlPath)
-
 	req, err := http.NewRequest(method, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, errors.Wrap(err, "VirgilHTTPClient.Send: new request")
 	}
 
+	if token != "" {
+		req.Header.Add("Authorization", token)
+	}
+
 	client := vc.getHTTPClient()
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "VirgilHTTPClient.Send: send request")
@@ -110,7 +114,7 @@ func (vc *VirgilHTTPClient) Send(method string, urlPath string, payload interfac
 		return nil, errors.Wrap(err, "VirgilHTTPClient.Send: read response body")
 	}
 
-	return nil, fmt.Errorf("%s", string(respBody))
+	return nil, fmt.Errorf("%d %s", resp.StatusCode, string(respBody))
 }
 
 func (vc *VirgilHTTPClient) getHTTPClient() HTTPClient {

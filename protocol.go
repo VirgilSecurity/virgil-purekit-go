@@ -37,7 +37,6 @@
 package passw0rd
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -46,7 +45,8 @@ import (
 )
 
 type Protocol struct {
-	AppID          string
+	AccessToken    string
+	AppId          string
 	PHEClients     map[int]*phe.Client
 	UpdateTokens   map[int]*phe.UpdateToken
 	APIClient      *APIClient
@@ -56,13 +56,14 @@ type Protocol struct {
 
 func NewProtocol(context *Context) (*Protocol, error) {
 
-	if context == nil || context.AppId == "" || context.PHEClients == nil {
+	if context == nil || context.AppId == "" || context.AccessToken == "" || context.PHEClients == nil {
 		return nil, errors.New("invalid context")
 	}
 	return &Protocol{
+		AccessToken:    context.AccessToken,
+		AppId:          context.AppId,
 		PHEClients:     context.PHEClients,
 		UpdateTokens:   context.UpdateTokens,
-		AppID:          context.AppId,
 		CurrentVersion: context.Version,
 	}, nil
 }
@@ -88,12 +89,7 @@ func (p *Protocol) EnrollAccount(password string) (enrollmentRecord []byte, encr
 		return nil, nil, errors.Wrap(err, "could not enroll account")
 	}
 
-	versionedRec := &EnrollmentRecord{
-		Version:    p.CurrentVersion,
-		Enrollment: rec,
-	}
-
-	enrollmentRecord, err = json.Marshal(versionedRec)
+	enrollmentRecord, err = MarshalRecord(p.CurrentVersion, rec)
 
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not serialize enrollment record")
@@ -105,28 +101,24 @@ func (p *Protocol) EnrollAccount(password string) (enrollmentRecord []byte, encr
 
 func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key []byte, err error) {
 
-	var rec *EnrollmentRecord
-	err = json.Unmarshal(enrollmentRecord, &rec)
+	version, record, err := UnmarshalRecord(enrollmentRecord)
+
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid record")
 	}
 
-	if rec.Version != p.CurrentVersion {
-		return nil, errors.New("version mismatch")
-	}
-
-	phe := p.getPHE(rec.Version)
+	phe := p.getPHE(version)
 	if phe == nil {
 		return nil, errors.New("unable to find keys corresponding to this record's version")
 	}
 
-	req, err := phe.CreateVerifyPasswordRequest([]byte(password), rec.Enrollment)
+	req, err := phe.CreateVerifyPasswordRequest([]byte(password), record)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create verify password request")
 	}
 
 	versionedReq := &VerifyPasswordRequest{
-		Version: rec.Version,
+		Version: version,
 		Request: req,
 	}
 
@@ -135,7 +127,7 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 		return nil, errors.Wrap(err, "error while requesting service")
 	}
 
-	key, err = phe.CheckResponseAndDecrypt([]byte(password), rec.Enrollment, resp.Response)
+	key, err = phe.CheckResponseAndDecrypt([]byte(password), record, resp.Response)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error after requesting service")
@@ -149,39 +141,36 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 }
 
 func (p *Protocol) UpdateEnrollmentRecord(oldRecord []byte) (newRecord []byte, err error) {
-	var rec *EnrollmentRecord
-	err = json.Unmarshal(oldRecord, &rec)
+	version, record, err := UnmarshalRecord(oldRecord)
+
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid record")
 	}
 
-	if rec.Version == p.CurrentVersion {
+	if version == p.CurrentVersion {
 		return oldRecord, nil
 	}
 
-	if rec.Version > p.CurrentVersion {
+	if version > p.CurrentVersion {
 		return nil, errors.New("record's version is greater than protocol's version")
 	}
 
 	var newRec *phe.EnrollmentRecord
-	recVersion := rec.Version
+	recVersion := version
 	for recVersion < p.CurrentVersion {
 		token := p.getToken(recVersion + 1)
 		if token == nil {
 			return nil, errors.New("protocol does not contain token to update record to the current version")
 		}
 
-		newRec, err = phe.UpdateRecord(rec.Enrollment, token)
+		newRec, err = phe.UpdateRecord(record, token)
 		if err != nil {
 			return nil, err
 		}
 		recVersion++
 	}
 
-	rec.Version = p.CurrentVersion
-	rec.Enrollment = newRec
-
-	newRecord, err = json.Marshal(rec)
+	newRecord, err = MarshalRecord(p.CurrentVersion, newRec)
 	return
 }
 
@@ -189,7 +178,8 @@ func (p *Protocol) getClient() *APIClient {
 	p.once.Do(func() {
 		if p.APIClient == nil {
 			p.APIClient = &APIClient{
-				AppID: p.AppID,
+				AccessToken: p.AccessToken,
+				AppID:       p.AppId,
 			}
 		}
 	})

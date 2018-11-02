@@ -61,12 +61,7 @@ type VerifyPasswordResponse struct {
 	Response *phe.VerifyPasswordResponse `json:"response"`
 }
 
-type ServerInfo struct {
-	Version   int    `json:"version"`
-	PublicKey []byte `json:"public_key"`
-}
-
-type UpdateToken struct {
-	Version int              `json:"version"`
-	Token   *phe.UpdateToken `json:"update_token"`
+type VersionedUpdateToken struct {
+	Version int
+	Token   *phe.UpdateToken
 }

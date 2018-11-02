@@ -37,52 +37,74 @@
 package passw0rd
 
 import (
-	"testing"
+	"encoding/asn1"
 
-	"github.com/stretchr/testify/require"
+	"github.com/passw0rd/phe-go"
+
+	"github.com/pkg/errors"
 )
 
-func TestProtocol_EnrollAccount(t *testing.T) {
+func MarshalUpdateToken(a, b []byte) (res []byte) {
+	token := phe.UpdateToken{
+		A: a,
+		B: b,
+	}
 
-	require := require.New(t)
+	res, err := asn1.Marshal(token)
 
-	accessToken := "OSoPhirdopvijQl-FPKdlSydN9BUrn5oEuDwf3-Hqps="
-	privStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
-	pubStr := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
-	token1 := "UT.2.MEQEILA6+pWr7ua7XnQIydKAgM9FIg4Dy4x7vNcJq6EwI44dBCBGKk3TVbG43txnHxVk6Be+rI5z+9ciIDCBFXCpUpkomA=="
-	appId := "c7717707d03f4d3589804e7509e5d7d7"
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
 
-	context, err := CreateContext(accessToken, appId, privStr, pubStr)
-	require.NoError(err)
+func UnmarshalUpdateToken(updateToken []byte) (token *phe.UpdateToken, err error) {
 
-	proto, err := NewProtocol(context)
-	require.NoError(err)
+	token = &phe.UpdateToken{}
+	rest, err := asn1.Unmarshal(updateToken, token)
 
-	const pwd = "p@ssw0Rd"
-	rec, key, err := proto.EnrollAccount(pwd)
-	require.NoError(err)
-	require.True(len(rec) > 0)
-	require.True(len(key) == 32)
+	if len(rest) != 0 || err != nil {
+		return nil, errors.Wrap(err, "invalid token")
+	}
 
-	key1, err := proto.VerifyPassword(pwd, rec)
-	require.NoError(err)
-	require.Equal(key, key1)
+	return
+}
 
-	key2, err := proto.VerifyPassword("p@ss", rec)
-	require.EqualError(err, ErrInvalidPassword.Error())
-	require.Nil(key2)
+type DbRecord struct {
+	Version        int
+	NS, NC, T0, T1 []byte
+}
 
-	//rotate happened
-	context, err = CreateContext(accessToken, appId, privStr, pubStr, token1)
-	require.NoError(err)
-	proto, err = NewProtocol(context)
-	require.NoError(err)
+func MarshalRecord(version int, rec *phe.EnrollmentRecord) ([]byte, error) {
+	dbRec := DbRecord{
+		Version: version,
+		NS:      rec.NS,
+		NC:      rec.NC,
+		T0:      rec.T0,
+		T1:      rec.T1,
+	}
 
-	newRec, err := proto.UpdateEnrollmentRecord(rec)
-	require.NoError(err)
+	res, err := asn1.Marshal(dbRec)
 
-	key3, err := proto.VerifyPassword(pwd, newRec)
-	require.NoError(err)
-	require.Equal(key, key3)
+	if err != nil {
+		panic(err)
+	}
+	return res, nil
+}
 
+func UnmarshalRecord(record []byte) (version int, rec *phe.EnrollmentRecord, err error) {
+
+	dbRecord := &DbRecord{}
+	rest, err := asn1.Unmarshal(record, dbRecord)
+
+	if len(rest) != 0 || err != nil {
+		return 0, nil, errors.Wrap(err, "invalid db record")
+	}
+
+	return dbRecord.Version, &phe.EnrollmentRecord{
+		NS: dbRecord.NS,
+		NC: dbRecord.NC,
+		T0: dbRecord.T0,
+		T1: dbRecord.T1,
+	}, nil
 }
