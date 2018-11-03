@@ -1,6 +1,6 @@
 # Passw0rd SDK Go
 
-[![Build Status](https://travis-ci.org/passw0rd/sdk-go.png?branch=master)](https://travis-ci.org/passw0rd/sdk-go)
+[![Build Status](https://travis-ci.com/passw0rd/sdk-go.png?branch=master)](https://travis-ci.com/passw0rd/sdk-go)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
 
