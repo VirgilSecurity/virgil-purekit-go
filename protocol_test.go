@@ -48,6 +48,11 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	req := require.New(t)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")
+
+	if accessToken == "" {
+		t.Skip("no parameters")
+	}
+
 	privStr := os.Getenv("SECRET_KEY")
 
 	pubStr := os.Getenv("PUBLIC_KEY")
