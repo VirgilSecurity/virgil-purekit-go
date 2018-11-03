@@ -37,38 +37,6 @@ The Passw0rd Go SDK is provided as a package named `passw0rd`. The package is di
 
 Virgil Pythia SDK uses the Virgil Crypto library to perform cryptographic operations. The Virgil Pythia Go SDK is provided as a package named pythia-go. The package is distributed via GitHub. The package is available for Go 1.10 or newer.
 
-Step #1. Install a PHE Library
-
-There two ways to install the Crypto Library:
-
-**The first**, if you are building from sources, install prerequisites as described [here](https://github.com/VirgilSecurity/virgil-crypto/#build) and then install the library:
-
-```bash
-go get -u -d gopkg.in/virgilsecurity/virgil-crypto-go.v5
-cd $(go env GOPATH)/src/gopkg.in/virgilsecurity/virgil-crypto-go.v5
-make
-```
-
-**The second**, if you use Linux x64 or Darwin x64 architecture, you can use the pre-built crypto binaries
-for Linux:
-```bash
-CRYPTO_LIB=virgil-crypto-2.4.4-go-linux-x86_64.tgz
-```
-or for MacOS:
-```bash
-CRYPTO_LIB=virgil-crypto-2.4.4-go-darwin-17.5-x86_64.tgz
-```
-
-and then install the library:
-
-```bash
-go get -u -d gopkg.in/virgilsecurity/virgil-crypto-go.v5
-wget https://cdn.virgilsecurity.com/virgil-crypto/go/$CRYPTO_LIB
-tar -xvf $CRYPTO_LIB --strip-components=1 -C $(go env GOPATH)/src/gopkg.in/virgilsecurity/virgil-crypto-go.v5/
-```
-
-#### Step #2. Installing Passw0rd Go package
-
 Install Passw0rd SDK library with the following code:
 ```bash
 go get -u github.com/passw0rd/sdk-go
