@@ -37,6 +37,7 @@
 package passw0rd
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -44,45 +45,63 @@ import (
 
 func TestProtocol_EnrollAccount(t *testing.T) {
 
-	require := require.New(t)
+	req := require.New(t)
 
-	accessToken := "OSoPhirdopvijQl-FPKdlSydN9BUrn5oEuDwf3-Hqps="
-	privStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
-	pubStr := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
-	token1 := "UT.2.MEQEILA6+pWr7ua7XnQIydKAgM9FIg4Dy4x7vNcJq6EwI44dBCBGKk3TVbG43txnHxVk6Be+rI5z+9ciIDCBFXCpUpkomA=="
-	appId := "c7717707d03f4d3589804e7509e5d7d7"
+	accessToken := os.Getenv("ACCESS_TOKEN")
+	privStr := os.Getenv("SECRET_KEY")
+
+	pubStr := os.Getenv("PUBLIC_KEY")
+	token1 := os.Getenv("UPDATE_TOKEN")
+	appId := os.Getenv("APP_ID")
+	address := os.Getenv("SERVER_ADDRESS")
 
 	context, err := CreateContext(accessToken, appId, privStr, pubStr)
-	require.NoError(err)
+	req.NoError(err)
 
 	proto, err := NewProtocol(context)
-	require.NoError(err)
+	req.NoError(err)
+
+	if address != "" {
+		proto.APIClient = &APIClient{
+			AccessToken: accessToken,
+			AppID:       appId,
+			URL:         address,
+		}
+	}
 
 	const pwd = "p@ssw0Rd"
 	rec, key, err := proto.EnrollAccount(pwd)
-	require.NoError(err)
-	require.True(len(rec) > 0)
-	require.True(len(key) == 32)
+	req.NoError(err)
+	req.True(len(rec) > 0)
+	req.True(len(key) == 32)
 
 	key1, err := proto.VerifyPassword(pwd, rec)
-	require.NoError(err)
-	require.Equal(key, key1)
+	req.NoError(err)
+	req.Equal(key, key1)
 
 	key2, err := proto.VerifyPassword("p@ss", rec)
-	require.EqualError(err, ErrInvalidPassword.Error())
-	require.Nil(key2)
+	req.EqualError(err, ErrInvalidPassword.Error())
+	req.Nil(key2)
 
 	//rotate happened
 	context, err = CreateContext(accessToken, appId, privStr, pubStr, token1)
-	require.NoError(err)
+	req.NoError(err)
 	proto, err = NewProtocol(context)
-	require.NoError(err)
+	req.NoError(err)
+
+	if address != "" {
+		proto.APIClient = &APIClient{
+			AccessToken: accessToken,
+			AppID:       appId,
+			URL:         address,
+		}
+	}
 
 	newRec, err := proto.UpdateEnrollmentRecord(rec)
-	require.NoError(err)
+	req.NoError(err)
 
 	key3, err := proto.VerifyPassword(pwd, newRec)
-	require.NoError(err)
-	require.Equal(key, key3)
+	req.NoError(err)
+	req.Equal(key, key3)
 
 }

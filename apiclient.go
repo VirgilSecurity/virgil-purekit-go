@@ -78,5 +78,5 @@ func (c *APIClient) getUrl() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	return "http://192.168.235.133:8080/phe/v1"
+	return "https://api.passw0rd.io/phe/v1"
 }
