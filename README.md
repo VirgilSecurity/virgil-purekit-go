@@ -35,8 +35,6 @@ The Passw0rd Go SDK is provided as a package named `passw0rd`. The package is di
 
 ### Install SDK Package
 
-Virgil Pythia SDK uses the Virgil Crypto library to perform cryptographic operations. The Virgil Pythia Go SDK is provided as a package named pythia-go. The package is distributed via GitHub. The package is available for Go 1.10 or newer.
-
 Install Passw0rd SDK library with the following code:
 ```bash
 go get -u github.com/passw0rd/sdk-go
