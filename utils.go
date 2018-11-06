@@ -84,12 +84,7 @@ func MarshalRecord(version int, rec *phe.EnrollmentRecord) ([]byte, error) {
 		T1:      rec.T1,
 	}
 
-	res, err := asn1.Marshal(dbRec)
-
-	if err != nil {
-		panic(err)
-	}
-	return res, nil
+	return asn1.Marshal(dbRec)
 }
 
 func UnmarshalRecord(record []byte) (version int, rec *phe.EnrollmentRecord, err error) {
