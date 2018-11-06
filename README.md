@@ -23,10 +23,10 @@ PHE is a new, more secure mechanism that protects user passwords and lessens the
 ## Register your Account
 Before start practicing with the SDK and usage examples be sure that:
 - you have a registered Account at Virgil Cloud
-- you have a registered Passw0rd Project
-- and you got your Passw0rd Project's credentials, such as: App ID, API Key, Server Public Key, Client Secret Key.
+- you have a registered Passw0rd Application
+- and you got your Passw0rd Application's credentials, such as: Application ID, Access Token, Server Public Key, Client Secret Key.
 
-If you don't have an account or a passw0rd's project with its credentials, please use a [Passw0rd CLI](https://github.com/passw0rd/cli) to get it.
+If you don't have an account or a Passw0rd's Application with its credentials, please use a [Passw0rd CLI](https://github.com/passw0rd/cli) to get it.
 
 
 ## Install and configure SDK
@@ -65,6 +65,8 @@ func InitPassw0rd() (*passw0rd.Protocol, error){
     return passw0rd.NewProtocol(context)
 }
 ```
+
+
 
 ## Setup your Database
 Passw0rd SDK lets you easily perform all the necessary operations to create, verify and update user's password without requiring any additional actions.
