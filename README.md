@@ -236,7 +236,7 @@ func UpdatePassword(oldRecord []byte) (newRecord[]byte, err error){
 
 ## Docs
 * [Passw0rd][_passw0rd] home page
-* [The PHE WhitePaper](https://eprint.iacr.org/2015/644.pdf) - foundation principles of the protocol
+* [The PHE WhitePaper](https://www.chaac.tf.fau.de/files/2018/06/main.pdf) - foundation principles of the protocol
 
 ## License
 
