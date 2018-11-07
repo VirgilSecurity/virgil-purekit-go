@@ -21,12 +21,12 @@ PHE is a new, more secure mechanism that protects user passwords and lessens the
 
 
 ## Register your Account
-Before start practicing with the SDK and usage examples be sure that:
+Before starting practicing with the SDK and usage examples be sure that:
 - you have a registered Account at Virgil Cloud
 - you have a registered Passw0rd Application
-- and you got your Passw0rd Application's credentials, such as: Application ID, Access Token, Server Public Key, Client Secret Key.
+- and you got your Passw0rd Application's credentials, such as: Application ID, Access Token, Service Public Key, Client Secret Key.
 
-If you don't have an account or a Passw0rd's Application with its credentials, please use a [Passw0rd CLI](https://github.com/passw0rd/cli) to get it.
+If you don't have an account or a passw0rd project with its credentials, please use the [Passw0rd CLI](https://github.com/passw0rd/cli) to get it.
 
 
 ## Install and configure SDK
@@ -67,11 +67,11 @@ func InitPassw0rd() (*passw0rd.Protocol, error){
 
 
 ## Setup your Database
-Passw0rd SDK lets you easily perform all the necessary operations to create, verify and update user's password without requiring any additional actions.
+Passw0rd SDK allows you to easily perform all the necessary operations to create, verify and update user's password without requiring any additional actions.
 
-In order to create and work with user's protected passw0rd you have to set up your database with additional column.
+In order to create and work with user's protected passw0rd you have to set up your database with an additional column.
 
-The column must be with following parameters:
+The column must have the following parameters:
 <table class="params">
 <thead>
 		<tr>
@@ -96,16 +96,16 @@ The column must be with following parameters:
 
 ## Usage Examples
 
-### Enroll a user's passw0rd
+### Enroll user's passw0rd
 
-Use this flow to create a new passw0rd record in your DB for a user.
+Use this flow to create a new passw0rd record for a user in your DB.
 
-> Remember, if you already have a database with user passwords, you don't have to wait until a user logs in into your system to implement Passw0rd. You can go through your database and enroll a user's passw0rd at any time.
+> Remember, if you already have a database with user passwords, you don't have to wait until a user logs in to your system to implement Passw0rd. You can go through your database and enroll user's passw0rd at any time.
 
-So, in order to create passw0rd for a new database or available one, go through the following operations:
-- Take a user's **password** (or its hash or whatever you use) and pass it into a `EnrollAccount` function in SDK on your Server side.
+So, in order to create passw0rd for a new database or an available one, go through the following operations:
+- Take user's **password** (or its hash or whatever you use) and pass it into the `EnrollAsync` function in SDK on your Server side.
 - Passw0rd SDK will send a request to Passw0rd Service to get enrollment.
-- Then, Passw0rd SDK will create a user's **passw0rd_record**. You need to store this unique user's `passw0rd_record` in your database in associated column.
+- Then, Passw0rd SDK will create user's Passw0rd **record**. You need to store this unique user's `record` (recordBytes or recordBase64 format) in your database in an associated column.
 
 ```go
 package main
@@ -143,12 +143,13 @@ func EnrollAccount(password string) error{
 }
 ```
 
-If you create a `passw0rd_record` for all users in your DB, you can delete the unnecessary column where user passwords were previously stored.
+When you've created a `passw0rd_record` for all users in your DB, you can delete the unnecessary column where user passwords were previously stored.
 
 
 ### Verify user's passw0rd
 
-Use this flow when a user already has his or her own `passw0rd_record` in your database. This function lets you verify user's password with encrypted `password_record` from your DB user's password every time when user sign in. You have to pass his or her `passw0rd_record` from your DB into an `VerifyPassword` function:
+Use this flow at the "sign in" step when a user already has his or her own unique `record` in your database. This function allows you to verify that the password that the user has passed is correct. 
+You have to pass his or her `record` from your DB into the `VerifyPassword` function:
 
 ```go
 package main
@@ -190,18 +191,18 @@ func VerifyPassword(password string, record []byte) error{
 
 ### Update user's passw0rd
 
-This function allows you to use a special `updateToken` to update users' passw0rd_record in your database.
+This function allows you to use a special `UpdateTokens` to update users' `record` in your database.
 
-> Use this flow only if your database was COMPROMISED!
-When user just needs to change own password use enroll function to replace old user's password_record value in your DB with a new user's password_record.
+> Use this flow only if your database has been COMPROMISED!
+When a user just needs to change his or her own password, use the `enroll` function to replace old user's `passw0rd_record` value in your DB with a new user's `passw0rd_record`.
 
 How it works:
 - Get your `UpdateToken` using [Passw0rd CLI](https://github.com/passw0rd/cli).
 - Specify the `UpdateToken` in the Passw0rd SDK on your Server side.
-- Then you use `UpdatePassword` function to create new user's password_record for your users (you don't need to ask your users to create a their password).
-- Finally, save a new user's passw0rd_record into your database.
+- Then use the `Update` records function to create new user's `record` for your users (you don't need to ask your users to create a new password).
+- Finally, save the new user's `record` into your database.
 
-Here is an example of using the `UpdatePassword` function:
+Here is an example of using the `Update` records function:
 ```go
 package main
 
