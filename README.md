@@ -35,8 +35,6 @@ The Passw0rd Go SDK is provided as a package named `passw0rd`. The package is di
 
 ### Install SDK Package
 
-Virgil Pythia SDK uses the Virgil Crypto library to perform cryptographic operations. The Virgil Pythia Go SDK is provided as a package named pythia-go. The package is distributed via GitHub. The package is available for Go 1.10 or newer.
-
 Install Passw0rd SDK library with the following code:
 ```bash
 go get -u github.com/passw0rd/sdk-go
@@ -106,8 +104,8 @@ Use this flow to create a new passw0rd record in your DB for a user.
 
 So, in order to create passw0rd for a new database or available one, go through the following operations:
 - Take a user's **password** (or its hash or whatever you use) and pass it into a `EnrollAccount` function in SDK on your Server side.
-- Passw0rd SDK will blind a user's **password** and will send a request to Passw0rd Service to get a **transformed blinded password**.
-- Then, Passw0rd SDK will de-blind the transformed blinded password into a user's **passw0rd_record**. You need to store this unique user's `passw0rd_record` in your database in associated column.
+- Passw0rd SDK will send a request to Passw0rd Service to get enrollment.
+- Then, Passw0rd SDK will create a user's **passw0rd_record**. You need to store this unique user's `passw0rd_record` in your database in associated column.
 
 ```go
 package main
@@ -236,8 +234,6 @@ func UpdatePassword(oldRecord []byte) (newRecord[]byte, err error){
 
 
 ## Docs
-Virgil Security has a powerful set of APIs, and the documentation below can get you started today.
-
 * [Passw0rd][_passw0rd] home page
 * [The PHE WhitePaper](https://eprint.iacr.org/2015/644.pdf) - foundation principles of the protocol
 
