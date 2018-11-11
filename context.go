@@ -57,9 +57,9 @@ type Context struct {
 	Version      int
 }
 
-func CreateContext(accessToken, appId, clientPrivateKey, serverPublicKey string, updateTokens ...string) (*Context, error) {
+func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, updateTokens ...string) (*Context, error) {
 
-	if len(appId) != 32 || clientPrivateKey == "" || serverPublicKey == "" || accessToken == "" {
+	if len(appId) != 32 || clientSecretKey == "" || serverPublicKey == "" || accessToken == "" {
 		return nil, errors.New("all parameters are mandatory")
 	}
 
@@ -68,9 +68,9 @@ func CreateContext(accessToken, appId, clientPrivateKey, serverPublicKey string,
 		return nil, errors.New("invalid appID")
 	}
 
-	privVersion, priv, err := parseVersionAndContent("SK", clientPrivateKey)
+	privVersion, priv, err := parseVersionAndContent("SK", clientSecretKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid private key")
+		return nil, errors.Wrap(err, "invalid secret key")
 	}
 
 	pubVersion, pubBytes, err := parseVersionAndContent("PK", serverPublicKey)
@@ -79,7 +79,7 @@ func CreateContext(accessToken, appId, clientPrivateKey, serverPublicKey string,
 	}
 
 	if privVersion != pubVersion {
-		return nil, errors.New("public and private keys must have the same version")
+		return nil, errors.New("public and secret keys must have the same version")
 	}
 
 	currentPriv, currentPub := priv, pubBytes
