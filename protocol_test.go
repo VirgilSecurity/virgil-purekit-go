@@ -53,14 +53,14 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 		t.Skip("no parameters")
 	}
 
-	privStr := os.Getenv("SECRET_KEY")
+	skStr := os.Getenv("SECRET_KEY")
 
 	pubStr := os.Getenv("PUBLIC_KEY")
 	token1 := os.Getenv("UPDATE_TOKEN")
 	appId := os.Getenv("APP_ID")
 	address := os.Getenv("SERVER_ADDRESS")
 
-	context, err := CreateContext(accessToken, appId, privStr, pubStr)
+	context, err := CreateContext(accessToken, appId, skStr, pubStr)
 	req.NoError(err)
 
 	proto, err := NewProtocol(context)
@@ -89,7 +89,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	req.Nil(key2)
 
 	//rotate happened
-	context, err = CreateContext(accessToken, appId, privStr, pubStr, token1)
+	context, err = CreateContext(accessToken, appId, skStr, pubStr, token1)
 	req.NoError(err)
 	proto, err = NewProtocol(context)
 	req.NoError(err)

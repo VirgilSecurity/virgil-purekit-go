@@ -68,22 +68,22 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 		return nil, errors.New("invalid appID")
 	}
 
-	privVersion, priv, err := parseVersionAndContent("SK", clientSecretKey)
+	skVersion, sk, err := ParseVersionAndContent("SK", clientSecretKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid secret key")
 	}
 
-	pubVersion, pubBytes, err := parseVersionAndContent("PK", serverPublicKey)
+	pubVersion, pubBytes, err := ParseVersionAndContent("PK", serverPublicKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid public key")
 	}
 
-	if privVersion != pubVersion {
+	if skVersion != pubVersion {
 		return nil, errors.New("public and secret keys must have the same version")
 	}
 
-	currentPriv, currentPub := priv, pubBytes
-	pheClient, err := phe.NewClient(currentPriv, currentPub)
+	currentSk, currentPub := sk, pubBytes
+	pheClient, err := phe.NewClient(currentSk, currentPub)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create PHE client")
@@ -108,18 +108,18 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 				return nil, fmt.Errorf("incorrect token version %d", token.Version)
 			}
 
-			nextPriv, nextPub, err := phe.RotateClientKeys(currentPriv, currentPub, token.Token)
+			nextSk, nextPub, err := phe.RotateClientKeys(currentSk, currentPub, token.Token)
 			if err != nil {
 				return nil, errors.Wrap(err, "could not update keys using token")
 			}
 
-			nextClient, err := phe.NewClient(nextPriv, nextPub)
+			nextClient, err := phe.NewClient(nextSk, nextPub)
 			if err != nil {
 				return nil, errors.Wrap(err, "could not create PHE client")
 			}
 
 			phes[token.Version] = nextClient
-			currentPriv, currentPub = nextPriv, nextPub
+			currentSk, currentPub = nextSk, nextPub
 			currentVersion = token.Version
 			tokenMap[token.Version] = token.Token
 		}
@@ -142,7 +142,7 @@ func parseTokens(tokens ...string) (parsedTokens []*VersionedUpdateToken, err er
 
 	for _, tokenStr := range tokens {
 
-		version, content, err := parseVersionAndContent("UT", tokenStr)
+		version, content, err := ParseVersionAndContent("UT", tokenStr)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "invalid update token")
@@ -166,7 +166,7 @@ func parseTokens(tokens ...string) (parsedTokens []*VersionedUpdateToken, err er
 	return
 }
 
-func parseVersionAndContent(prefix, str string) (version int, content []byte, err error) {
+func ParseVersionAndContent(prefix, str string) (version int, content []byte, err error) {
 	parts := strings.Split(str, ".")
 	if len(parts) != 3 || parts[0] != prefix {
 		return 0, nil, errors.New("invalid string")

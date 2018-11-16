@@ -51,11 +51,11 @@ import (
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
     accessToken := "OSoPhirdopvijQl-FPKdlSydN9BUrn5oEuDwf3-Hqps="
-    privStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
+    skStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     pubStr := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
     appId := "c7717707d03f4d3589804e7509e5d7d7"
 
-    context, err := passw0rd.CreateContext(accessToken, appId, privStr, pubStr)
+    context, err := passw0rd.CreateContext(accessToken, appId, skStr, pubStr)
     if err != nil{
         return nil, err
     }
