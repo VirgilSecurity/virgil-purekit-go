@@ -39,7 +39,6 @@ package common
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -48,6 +47,8 @@ import (
 	"path"
 	"sync"
 	"time"
+
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/pkg/errors"
 )
@@ -62,10 +63,10 @@ type VirgilHTTPClient struct {
 	once    sync.Once
 }
 
-func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, payload interface{}, respObj interface{}) (headers http.Header, err error) {
+func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, payload proto.Message, respObj proto.Message) (headers http.Header, err error) {
 	var body []byte
 	if payload != nil {
-		body, err = json.Marshal(payload)
+		body, err = proto.Marshal(payload)
 		if err != nil {
 			return nil, errors.Wrap(err, "VirgilHTTPClient.Send: marshal payload")
 		}
@@ -100,8 +101,13 @@ func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, pa
 	if resp.StatusCode == http.StatusOK {
 		if respObj != nil {
 
-			decoder := json.NewDecoder(resp.Body)
-			err = decoder.Decode(respObj)
+			body, err := ioutil.ReadAll(resp.Body)
+
+			if err != nil {
+				return nil, errors.Wrap(err, "VirgilHTTPClient.Send: read body")
+			}
+
+			err = proto.Unmarshal(body, respObj)
 			if err != nil {
 				return nil, errors.Wrap(err, "VirgilHTTPClient.Send: unmarshal response object")
 			}

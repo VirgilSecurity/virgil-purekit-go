@@ -37,69 +37,35 @@
 package passw0rd
 
 import (
-	"encoding/asn1"
-
-	"github.com/passw0rd/phe-go"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/pkg/errors"
 )
 
-func MarshalUpdateToken(a, b []byte) (res []byte) {
-	token := phe.UpdateToken{
-		A: a,
-		B: b,
+func MarshalRecord(version uint32, rec []byte) ([]byte, error) {
+	if version < 1 {
+		return nil, errors.New("invalid version")
+	}
+	dbRec := &DatabaseRecord{
+		Version: version,
+		Record:  rec,
 	}
 
-	res, err := asn1.Marshal(token)
+	return proto.Marshal(dbRec)
+}
+
+func UnmarshalRecord(record []byte) (version uint32, rec []byte, err error) {
+
+	dbRecord := &DatabaseRecord{}
+	err = proto.Unmarshal(record, dbRecord)
 
 	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
-func UnmarshalUpdateToken(updateToken []byte) (token *phe.UpdateToken, err error) {
-
-	token = &phe.UpdateToken{}
-	rest, err := asn1.Unmarshal(updateToken, token)
-
-	if len(rest) != 0 || err != nil {
-		return nil, errors.Wrap(err, "invalid token")
-	}
-
-	return
-}
-
-type DbRecord struct {
-	Version        int
-	NS, NC, T0, T1 []byte
-}
-
-func MarshalRecord(version int, rec *phe.EnrollmentRecord) ([]byte, error) {
-	dbRec := DbRecord{
-		Version: version,
-		NS:      rec.NS,
-		NC:      rec.NC,
-		T0:      rec.T0,
-		T1:      rec.T1,
-	}
-
-	return asn1.Marshal(dbRec)
-}
-
-func UnmarshalRecord(record []byte) (version int, rec *phe.EnrollmentRecord, err error) {
-
-	dbRecord := &DbRecord{}
-	rest, err := asn1.Unmarshal(record, dbRecord)
-
-	if len(rest) != 0 || err != nil {
 		return 0, nil, errors.Wrap(err, "invalid db record")
 	}
 
-	return dbRecord.Version, &phe.EnrollmentRecord{
-		NS: dbRecord.NS,
-		NC: dbRecord.NC,
-		T0: dbRecord.T0,
-		T1: dbRecord.T1,
-	}, nil
+	if int(dbRecord.Version) < 1 {
+		return 0, nil, errors.New("invalid record version")
+	}
+
+	return dbRecord.Version, dbRecord.Record, nil
 }

@@ -40,17 +40,17 @@ import (
 	"fmt"
 	"sync"
 
-	phe "github.com/passw0rd/phe-go"
+	"github.com/passw0rd/phe-go"
 	"github.com/pkg/errors"
 )
 
 type Protocol struct {
 	AccessToken    string
 	AppId          string
-	PHEClients     map[int]*phe.Client
-	UpdateTokens   map[int]*phe.UpdateToken
+	PHEClients     map[uint32]*phe.Client
+	UpdateTokens   map[uint32][]byte
 	APIClient      *APIClient
-	CurrentVersion int
+	CurrentVersion uint32
 	once           sync.Once
 }
 
@@ -76,14 +76,14 @@ func (p *Protocol) EnrollAccount(password string) (enrollmentRecord []byte, encr
 		return nil, nil, err
 	}
 
-	phe := p.getPHE(resp.Version)
+	pheImpl := p.getPHE(resp.Version)
 
-	if phe == nil {
+	if pheImpl == nil {
 		err = fmt.Errorf("unable to find keys for version %d", resp.Version)
 		return
 	}
 
-	rec, key, err := phe.EnrollAccount([]byte(password), resp.Enrollment)
+	rec, key, err := pheImpl.EnrollAccount([]byte(password), resp.Response)
 
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not enroll account")
@@ -107,18 +107,18 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 		return nil, errors.Wrap(err, "invalid record")
 	}
 
-	phe := p.getPHE(version)
-	if phe == nil {
+	pheImpl := p.getPHE(version)
+	if pheImpl == nil {
 		return nil, errors.New("unable to find keys corresponding to this record's version")
 	}
 
-	req, err := phe.CreateVerifyPasswordRequest([]byte(password), record)
+	req, err := pheImpl.CreateVerifyPasswordRequest([]byte(password), record)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create verify password request")
 	}
 
 	versionedReq := &VerifyPasswordRequest{
-		Version: version,
+		Version: uint32(version),
 		Request: req,
 	}
 
@@ -127,7 +127,7 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 		return nil, errors.Wrap(err, "error while requesting service")
 	}
 
-	key, err = phe.CheckResponseAndDecrypt([]byte(password), record, resp.Response)
+	key, err = pheImpl.CheckResponseAndDecrypt([]byte(password), record, resp.Response)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error after requesting service")
@@ -155,7 +155,7 @@ func (p *Protocol) UpdateEnrollmentRecord(oldRecord []byte) (newRecord []byte, e
 		return nil, errors.New("record's version is greater than protocol's version")
 	}
 
-	var newRec *phe.EnrollmentRecord
+	var newRec []byte
 	recVersion := version
 	for recVersion < p.CurrentVersion {
 		token := p.getToken(recVersion + 1)
@@ -186,21 +186,21 @@ func (p *Protocol) getClient() *APIClient {
 	return p.APIClient
 }
 
-func (p *Protocol) getPHE(version int) *phe.Client {
+func (p *Protocol) getPHE(version uint32) *phe.Client {
 
-	phe, ok := p.PHEClients[version]
+	pheImpl, ok := p.PHEClients[version]
 	if !ok {
 		return nil
 	}
 
-	return phe
+	return pheImpl
 }
 
-func (p *Protocol) getToken(version int) *phe.UpdateToken {
-	if p.UpdateTokens == nil {
+func (p *Protocol) getToken(version uint32) []byte {
+	if p.UpdateTokens == nil || version < 1 {
 		return nil
 	}
-	token, ok := p.UpdateTokens[version]
+	token, ok := p.UpdateTokens[uint32(version)]
 	if !ok {
 		return nil
 	}

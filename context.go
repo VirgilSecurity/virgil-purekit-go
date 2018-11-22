@@ -52,9 +52,9 @@ import (
 type Context struct {
 	AccessToken  string
 	AppId        string
-	PHEClients   map[int]*phe.Client
-	UpdateTokens map[int]*phe.UpdateToken
-	Version      int
+	PHEClients   map[uint32]*phe.Client
+	UpdateTokens map[uint32][]byte
+	Version      uint32
 }
 
 func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, updateTokens ...string) (*Context, error) {
@@ -89,7 +89,7 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 		return nil, errors.Wrap(err, "could not create PHE client")
 	}
 
-	phes := make(map[int]*phe.Client)
+	phes := make(map[uint32]*phe.Client)
 	phes[pubVersion] = pheClient
 
 	tokens, err := parseTokens(updateTokens...)
@@ -99,16 +99,16 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 
 	currentVersion := pubVersion
 
-	var tokenMap map[int]*phe.UpdateToken
+	var tokenMap map[uint32][]byte
 
 	if len(tokens) > 0 {
-		tokenMap = make(map[int]*phe.UpdateToken)
+		tokenMap = make(map[uint32][]byte)
 		for _, token := range tokens {
 			if token.Version != currentVersion+1 {
 				return nil, fmt.Errorf("incorrect token version %d", token.Version)
 			}
 
-			nextSk, nextPub, err := phe.RotateClientKeys(currentSk, currentPub, token.Token)
+			nextSk, nextPub, err := phe.RotateClientKeys(currentSk, currentPub, token.UpdateToken)
 			if err != nil {
 				return nil, errors.Wrap(err, "could not update keys using token")
 			}
@@ -121,7 +121,7 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 			phes[token.Version] = nextClient
 			currentSk, currentPub = nextSk, nextPub
 			currentVersion = token.Version
-			tokenMap[token.Version] = token.Token
+			tokenMap[token.Version] = token.UpdateToken
 		}
 
 	}
@@ -148,14 +148,9 @@ func parseTokens(tokens ...string) (parsedTokens []*VersionedUpdateToken, err er
 			return nil, errors.Wrap(err, "invalid update token")
 		}
 
-		token, err := UnmarshalUpdateToken(content)
-		if err != nil {
-			return nil, errors.Wrap(err, "invalid update token")
-		}
-
 		vt := &VersionedUpdateToken{
-			Version: version,
-			Token:   token,
+			Version:     version,
+			UpdateToken: content,
 		}
 
 		parsedTokens = append(parsedTokens, vt)
@@ -166,16 +161,21 @@ func parseTokens(tokens ...string) (parsedTokens []*VersionedUpdateToken, err er
 	return
 }
 
-func ParseVersionAndContent(prefix, str string) (version int, content []byte, err error) {
+func ParseVersionAndContent(prefix, str string) (version uint32, content []byte, err error) {
 	parts := strings.Split(str, ".")
 	if len(parts) != 3 || parts[0] != prefix {
 		return 0, nil, errors.New("invalid string")
 	}
 
-	version, err = strconv.Atoi(parts[1])
+	nVersion, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return 0, nil, errors.Wrap(err, "invalid string")
 	}
+
+	if version < 1 {
+		return 0, nil, errors.Wrap(err, "invalid version")
+	}
+	version = uint32(nVersion)
 
 	content, err = base64.StdEncoding.DecodeString(parts[2])
 	if err != nil {

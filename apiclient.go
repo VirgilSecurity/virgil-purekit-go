@@ -53,13 +53,13 @@ type APIClient struct {
 }
 
 func (c *APIClient) GetEnrollment(req *EnrollmentRequest) (resp *EnrollmentResponse, err error) {
-	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, path.Join(c.AppID, "enroll"), req, &resp)
+	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, path.Join(c.AppID, "enroll"), req, resp)
 	return
 }
 
 func (c *APIClient) VerifyPassword(req *VerifyPasswordRequest) (resp *VerifyPasswordResponse, err error) {
 
-	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, path.Join(c.AppID, "verify-password"), req, &resp)
+	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, path.Join(c.AppID, "verify-password"), req, resp)
 	return
 }
 
