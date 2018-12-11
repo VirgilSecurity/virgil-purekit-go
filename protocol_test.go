@@ -60,7 +60,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	appId := os.Getenv("APP_ID")
 	address := os.Getenv("SERVER_ADDRESS")
 
-	context, err := CreateContext(accessToken, appId, skStr, pubStr)
+	context, err := CreateContext(accessToken, appId, skStr, pubStr, "")
 	req.NoError(err)
 
 	proto, err := NewProtocol(context)

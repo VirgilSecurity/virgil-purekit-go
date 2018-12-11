@@ -48,9 +48,9 @@ type Protocol struct {
 	AccessToken    string
 	AppId          string
 	PHEClients     map[uint32]*phe.Client
-	UpdateTokens   map[uint32][]byte
 	APIClient      *APIClient
 	CurrentVersion uint32
+	UpdateToken    *VersionedUpdateToken
 	once           sync.Once
 }
 
@@ -63,8 +63,8 @@ func NewProtocol(context *Context) (*Protocol, error) {
 		AccessToken:    context.AccessToken,
 		AppId:          context.AppId,
 		PHEClients:     context.PHEClients,
-		UpdateTokens:   context.UpdateTokens,
 		CurrentVersion: context.Version,
+		UpdateToken:    context.UpdateToken,
 	}, nil
 }
 
@@ -197,14 +197,10 @@ func (p *Protocol) getPHE(version uint32) *phe.Client {
 }
 
 func (p *Protocol) getToken(version uint32) []byte {
-	if p.UpdateTokens == nil || version < 1 {
-		return nil
+	if p.UpdateToken != nil || p.UpdateToken.Version == version {
+		return p.UpdateToken.UpdateToken
 	}
-	token, ok := p.UpdateTokens[uint32(version)]
-	if !ok {
-		return nil
-	}
-	return token
+	return nil
 }
 
 func (p *Protocol) getCurrentPHE() *phe.Client {

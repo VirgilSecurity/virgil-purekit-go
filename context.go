@@ -40,7 +40,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -50,14 +49,14 @@ import (
 )
 
 type Context struct {
-	AccessToken  string
-	AppId        string
-	PHEClients   map[uint32]*phe.Client
-	UpdateTokens map[uint32][]byte
-	Version      uint32
+	AccessToken string
+	AppId       string
+	PHEClients  map[uint32]*phe.Client
+	Version     uint32
+	UpdateToken *VersionedUpdateToken
 }
 
-func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, updateTokens ...string) (*Context, error) {
+func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, updateToken string) (*Context, error) {
 
 	if len(appId) != 32 || clientSecretKey == "" || serverPublicKey == "" || accessToken == "" {
 		return nil, errors.New("all parameters are mandatory")
@@ -92,73 +91,61 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 	phes := make(map[uint32]*phe.Client)
 	phes[pubVersion] = pheClient
 
-	tokens, err := parseTokens(updateTokens...)
+	token, err := parseToken(updateToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse update tokens")
 	}
 
 	currentVersion := pubVersion
 
-	var tokenMap map[uint32][]byte
-
-	if len(tokens) > 0 {
-		tokenMap = make(map[uint32][]byte)
-		for _, token := range tokens {
-			if token.Version != currentVersion+1 {
-				return nil, fmt.Errorf("incorrect token version %d", token.Version)
-			}
-
-			nextSk, nextPub, err := phe.RotateClientKeys(currentSk, currentPub, token.UpdateToken)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not update keys using token")
-			}
-
-			nextClient, err := phe.NewClient(nextSk, nextPub)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not create PHE client")
-			}
-
-			phes[token.Version] = nextClient
-			currentSk, currentPub = nextSk, nextPub
-			currentVersion = token.Version
-			tokenMap[token.Version] = token.UpdateToken
+	if token != nil {
+		if token.Version != currentVersion+1 {
+			return nil, fmt.Errorf("incorrect token version %d", token.Version)
 		}
 
+		nextSk, nextPub, err := phe.RotateClientKeys(currentSk, currentPub, token.UpdateToken)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not update keys using token")
+		}
+
+		nextClient, err := phe.NewClient(nextSk, nextPub)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not create PHE client")
+		}
+
+		phes[token.Version] = nextClient
+		currentSk, currentPub = nextSk, nextPub
+		currentVersion = token.Version
 	}
 
 	return &Context{
-		AccessToken:  accessToken,
-		PHEClients:   phes,
-		AppId:        appId,
-		Version:      currentVersion,
-		UpdateTokens: tokenMap,
+		AccessToken: accessToken,
+		PHEClients:  phes,
+		AppId:       appId,
+		Version:     currentVersion,
+		UpdateToken: token,
 	}, nil
 }
 
-func parseTokens(tokens ...string) (parsedTokens []*VersionedUpdateToken, err error) {
-	if len(tokens) == 0 {
+func parseToken(token string) (parsedToken *VersionedUpdateToken, err error) {
+	if len(token) == 0 {
 		return nil, nil
 	}
 
-	for _, tokenStr := range tokens {
+	version, content, err := ParseVersionAndContent("UT", token)
 
-		version, content, err := ParseVersionAndContent("UT", tokenStr)
-
-		if err != nil {
-			return nil, errors.Wrap(err, "invalid update token")
-		}
-
-		vt := &VersionedUpdateToken{
-			Version:     version,
-			UpdateToken: content,
-		}
-
-		parsedTokens = append(parsedTokens, vt)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid update token")
 	}
 
-	sort.Slice(parsedTokens, func(i, j int) bool { return parsedTokens[i].Version < parsedTokens[j].Version })
+	vt := &VersionedUpdateToken{
+		Version:     version,
+		UpdateToken: content,
+	}
 
-	return
+	parsedToken = vt
+
+	return parsedToken, nil
 }
 
 func ParseVersionAndContent(prefix, str string) (version uint32, content []byte, err error) {
@@ -172,7 +159,7 @@ func ParseVersionAndContent(prefix, str string) (version uint32, content []byte,
 		return 0, nil, errors.Wrap(err, "invalid string")
 	}
 
-	if version < 1 {
+	if nVersion < 1 {
 		return 0, nil, errors.Wrap(err, "invalid version")
 	}
 	version = uint32(nVersion)
