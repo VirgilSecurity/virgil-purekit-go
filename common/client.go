@@ -84,7 +84,7 @@ func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, pa
 	}
 
 	if token != "" {
-		req.Header.Add("Authorization", token)
+		req.Header.Add("AppToken", token)
 	}
 
 	client := vc.getHTTPClient()
