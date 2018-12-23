@@ -57,10 +57,9 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 
 	pubStr := os.Getenv("PUBLIC_KEY")
 	token1 := os.Getenv("UPDATE_TOKEN")
-	appId := os.Getenv("APP_ID")
 	address := os.Getenv("SERVER_ADDRESS")
 
-	context, err := CreateContext(accessToken, appId, skStr, pubStr, "")
+	context, err := CreateContext(accessToken, skStr, pubStr, "")
 	req.NoError(err)
 
 	proto, err := NewProtocol(context)
@@ -69,7 +68,6 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	if address != "" {
 		proto.APIClient = &APIClient{
 			AccessToken: accessToken,
-			AppID:       appId,
 			URL:         address,
 		}
 	}
@@ -89,7 +87,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	req.Nil(key2)
 
 	//rotate happened
-	context, err = CreateContext(accessToken, appId, skStr, pubStr, token1)
+	context, err = CreateContext(accessToken, skStr, pubStr, token1)
 	req.NoError(err)
 	proto, err = NewProtocol(context)
 	req.NoError(err)
@@ -97,7 +95,6 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	if address != "" {
 		proto.APIClient = &APIClient{
 			AccessToken: accessToken,
-			AppID:       appId,
 			URL:         address,
 		}
 	}

@@ -38,7 +38,6 @@ package passw0rd
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -50,21 +49,15 @@ import (
 
 type Context struct {
 	AccessToken string
-	AppId       string
 	PHEClients  map[uint32]*phe.Client
 	Version     uint32
 	UpdateToken *VersionedUpdateToken
 }
 
-func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, updateToken string) (*Context, error) {
+func CreateContext(accessToken, clientSecretKey, serverPublicKey string, updateToken string) (*Context, error) {
 
-	if len(appId) != 32 || clientSecretKey == "" || serverPublicKey == "" || accessToken == "" {
+	if clientSecretKey == "" || serverPublicKey == "" || accessToken == "" {
 		return nil, errors.New("all parameters are mandatory")
-	}
-
-	_, err := hex.DecodeString(appId)
-	if err != nil {
-		return nil, errors.New("invalid appID")
 	}
 
 	skVersion, sk, err := ParseVersionAndContent("SK", clientSecretKey)
@@ -121,7 +114,7 @@ func CreateContext(accessToken, appId, clientSecretKey, serverPublicKey string, 
 	return &Context{
 		AccessToken: accessToken,
 		PHEClients:  phes,
-		AppId:       appId,
+
 		Version:     currentVersion,
 		UpdateToken: token,
 	}, nil

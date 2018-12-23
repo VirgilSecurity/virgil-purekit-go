@@ -34,7 +34,7 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package common
+package passw0rd
 
 import (
 	"bytes"
@@ -118,6 +118,15 @@ func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, pa
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "VirgilHTTPClient.Send: read response body")
+	}
+
+	if len(respBody) > 0 {
+		httpErr := &HttpError{}
+		err = proto.Unmarshal(respBody, httpErr)
+		if err == nil {
+
+			return nil, httpErr
+		}
 	}
 
 	return nil, fmt.Errorf("%d %s", resp.StatusCode, string(respBody))

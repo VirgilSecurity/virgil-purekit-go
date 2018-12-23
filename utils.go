@@ -37,6 +37,8 @@
 package passw0rd
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -67,4 +69,8 @@ func UnmarshalRecord(record []byte) (version uint32, rec []byte, err error) {
 	}
 
 	return dbRecord.Version, dbRecord.Record, nil
+}
+
+func (m *HttpError) Error() string {
+	return fmt.Sprintf("%s", m.Message)
 }

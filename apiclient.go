@@ -38,36 +38,32 @@ package passw0rd
 
 import (
 	"net/http"
-	"path"
 	"sync"
-
-	"github.com/passw0rd/sdk-go/common"
 )
 
 type APIClient struct {
 	AccessToken string
-	AppID       string
 	URL         string
-	HTTPClient  *common.VirgilHTTPClient
+	HTTPClient  *VirgilHTTPClient
 	once        sync.Once
 }
 
 func (c *APIClient) GetEnrollment(req *EnrollmentRequest) (resp *EnrollmentResponse, err error) {
 	resp = &EnrollmentResponse{}
-	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, path.Join(c.AppID, "enroll"), req, resp)
+	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, "enroll", req, resp)
 	return
 }
 
 func (c *APIClient) VerifyPassword(req *VerifyPasswordRequest) (resp *VerifyPasswordResponse, err error) {
 	resp = &VerifyPasswordResponse{}
-	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, path.Join(c.AppID, "verify-password"), req, resp)
+	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, "verify-password", req, resp)
 	return
 }
 
-func (c *APIClient) getClient() *common.VirgilHTTPClient {
+func (c *APIClient) getClient() *VirgilHTTPClient {
 	c.once.Do(func() {
 		if c.HTTPClient == nil {
-			c.HTTPClient = &common.VirgilHTTPClient{
+			c.HTTPClient = &VirgilHTTPClient{
 				Address: c.getUrl(),
 			}
 		}

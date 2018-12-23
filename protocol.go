@@ -56,12 +56,11 @@ type Protocol struct {
 
 func NewProtocol(context *Context) (*Protocol, error) {
 
-	if context == nil || context.AppId == "" || context.AccessToken == "" || context.PHEClients == nil {
+	if context == nil || context.AccessToken == "" || context.PHEClients == nil {
 		return nil, errors.New("invalid context")
 	}
 	return &Protocol{
 		AccessToken:    context.AccessToken,
-		AppId:          context.AppId,
 		PHEClients:     context.PHEClients,
 		CurrentVersion: context.Version,
 		UpdateToken:    context.UpdateToken,
@@ -179,7 +178,6 @@ func (p *Protocol) getClient() *APIClient {
 		if p.APIClient == nil {
 			p.APIClient = &APIClient{
 				AccessToken: p.AccessToken,
-				AppID:       p.AppId,
 			}
 		}
 	})
