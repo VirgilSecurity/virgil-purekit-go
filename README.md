@@ -50,12 +50,11 @@ import (
 )
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
-    accessToken := "OSoPhirdopvijQl-FPKdlSydN9BUrn5oEuDwf3-Hqps="
+    accessToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     skStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     pubStr := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
-    appId := "c7717707d03f4d3589804e7509e5d7d7"
-
-    context, err := passw0rd.CreateContext(accessToken, appId, skStr, pubStr)
+    
+    context, err := passw0rd.CreateContext(accessToken, skStr, pubStr, "")
     if err != nil{
         return nil, err
     }
@@ -118,7 +117,7 @@ import (
 
 // create a new encrypted password record using user password or its hash
 func EnrollAccount(password string) error{
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "APP_ID", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY")
+    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -161,7 +160,7 @@ import (
 
 
 func VerifyPassword(password string, record []byte) error{
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "APP_ID", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY")
+    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -212,7 +211,7 @@ import (
 
 
 func UpdatePassword(oldRecord []byte) (newRecord[]byte, err error){
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "APP_ID", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "UPDATE_TOKEN")
+    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "UPDATE_TOKEN")
     if err != nil {
         return
     }
