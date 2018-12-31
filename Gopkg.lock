@@ -19,14 +19,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8a6a77c5a7bb2aeb4d5c33c3948db96eedaa43cbccbcd481e65f37857d86036d"
+  digest = "1:6a40e69be81a3eb6c0cea15406f4f34a1564ed145194bfdb4e29a2769e8476c4"
   name = "github.com/passw0rd/phe-go"
   packages = [
     ".",
     "swu",
   ]
   pruneopts = "UT"
-  revision = "c719044b14c4564f628aac0c23a91ec6d2b26c0f"
+  revision = "aa21cce33ae6c8bfa88c706c69bd5f69aafd3651"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
