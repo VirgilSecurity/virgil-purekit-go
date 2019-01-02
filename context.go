@@ -56,7 +56,7 @@ type Context struct {
 }
 
 //CreateContext validates input parameters and prepares them for being used in Protocol
-func CreateContext(appToken, servicePublicKey string, clientSecretKey, updateToken string) (*Context, error) {
+func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken string) (*Context, error) {
 
 	if clientSecretKey == "" || servicePublicKey == "" || appToken == "" {
 		return nil, errors.New("all parameters are mandatory")
