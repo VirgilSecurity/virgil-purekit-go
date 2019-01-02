@@ -23,9 +23,9 @@ PHE is a new, more secure mechanism that protects user passwords and lessens the
 
 ## Register Your Account
 Before starting practicing with the SDK and usage examples be sure that:
-- you have a registered passw0rd Account
-- you have a registered passw0rd Application
-- and you got your passw0rd application's credentials, such as: Application ID, Access Token, Service Public Key, Client Secret Key
+- you have a registered passw0rd account
+- you have a registered passw0rd application
+- and you have your passw0rd application's credentials, such as: Application Token, Service Public Key, Client Secret Key
 
 If you don't have an account or a passw0rd project with its credentials, please use the [passw0rd CLI](https://github.com/passw0rd/cli) to get it.
 
@@ -50,11 +50,11 @@ import (
 )
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
-    accessToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
+    appToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     skStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     pubStr := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
-    
-    context, err := passw0rd.CreateContext(accessToken, skStr, pubStr, "")
+
+    context, err := passw0rd.CreateContext(appToken, skStr, pubStr, "")
     if err != nil{
         return nil, err
     }
@@ -83,10 +83,10 @@ The column must have the following parameters:
 
 <tbody>
 <tr>
-	<td>passw0rd_record</td>
+	<td>record</td>
 	<td>bytearray</td>
 	<td>210</td>
-	<td> A unique record, namely a user's protected passw0rd.</td>
+	<td> A unique passw0rd record, namely a user's protected passw0rd.</td>
 </tr>
 
 </tbody>
@@ -97,12 +97,12 @@ The column must have the following parameters:
 
 ### Enroll User passw0rd
 
-Use this flow to create a new passw0rd record for a user in your DB.
+Use this flow to create a new user's passw0rd record for a user in your DB.
 
 > Remember, if you already have a database with user passwords, you don't have to wait until a user logs in to your system to implement Passw0rd. You can go through your database and enroll user passw0rd at any time.
 
 So, in order to create passw0rd for a new database or an available one, go through the following operations:
-- Take user's **password** (or its hash or whatever you use) and pass it into the `EnrollAsync` function in SDK on your Server side.
+- Take user's **password** (or its hash or whatever you use) and pass it into the `EnrollAccount` function in SDK on your Server side.
 - Passw0rd SDK will send a request to passw0rd service to get enrollment.
 - Then, passw0rd SDK will create user's passw0rd **record**. You need to store this unique user's `record` (recordBytes or recordBase64 format) in your database in an associated column.
 
@@ -117,7 +117,7 @@ import (
 
 // create a new encrypted password record using user password or its hash
 func EnrollAccount(password string) error{
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "CLIENT_SECRET_KEY", "SERVICE_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -147,7 +147,7 @@ When you've created a `passw0rd_record` for all users in your DB, you can delete
 
 ### Verify User passw0rd
 
-Use this flow at the "sign in" step when a user already has his or her own unique `record` in your database. This function allows you to verify that the password that the user has passed is correct. 
+Use this flow at the "sign in" step when a user already has his or her own unique `record` in your database. This function allows you to verify that the password that the user has passed is correct.
 You have to pass his or her `record` from your DB into the `VerifyPassword` function:
 
 ```go
@@ -160,7 +160,7 @@ import (
 
 
 func VerifyPassword(password string, record []byte) error{
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "CLIENT_SECRET_KEY", "SERVICE_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -190,18 +190,18 @@ func VerifyPassword(password string, record []byte) error{
 
 ### Rotate User passw0rd
 
-This function allows you to use a special `UpdateTokens` to update users' `record` in your database.
+This function allows you to use a special `update_token` to update users' `record` in your database.
 
 > Use this flow only if your database has been COMPROMISED!
-When a user just needs to change his or her own password, use the `enroll` function to replace old user's `passw0rd_record` value in your DB with a new user's `passw0rd_record`.
+When a user just needs to change his or her own password, use the `EnrollAccount` function to replace user's `old_passw0rd_record` value in your DB with a user's `new_passw0rd_record`.
 
 How it works:
-- Get your `UpdateToken` using [Passw0rd CLI](https://github.com/passw0rd/cli).
-- Specify the `UpdateToken` in the Passw0rd SDK on your Server side.
-- Then use the `Update` records function to create new user's `record` for your users (you don't need to ask your users to create a new password).
-- Finally, save the new user's `record` into your database.
+- Get your `update_token` using [Passw0rd CLI](https://github.com/passw0rd/cli).
+- Specify the `update_token` in the Passw0rd SDK on your Server side.
+- Then use the `UpdatePassword` records function to create a `new_passw0rd_record` for your users (you don't need to ask your users to create a new password).
+- Finally, save the the `new_passw0rd_record` into your database.
 
-Here is an example of using the `Update` records function:
+Here is an example of using the `UpdatePassword` function:
 ```go
 package main
 
@@ -211,7 +211,7 @@ import (
 
 
 func UpdatePassword(oldRecord []byte) (newRecord[]byte, err error){
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "UPDATE_TOKEN")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "CLIENT_SECRET_KEY", "SERVICE_PUBLIC_KEY", "UPDATE_TOKEN")
     if err != nil {
         return
     }
