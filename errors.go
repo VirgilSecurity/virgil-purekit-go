@@ -38,4 +38,5 @@ package passw0rd
 
 import "github.com/pkg/errors"
 
+// ErrInvalidPassword is returned when protocol determines validation failure
 var ErrInvalidPassword = errors.New("invalid password")

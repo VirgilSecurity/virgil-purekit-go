@@ -47,9 +47,9 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 
 	req := require.New(t)
 
-	accessToken := os.Getenv("ACCESS_TOKEN")
+	appToken := os.Getenv("APP_TOKEN")
 
-	if accessToken == "" {
+	if appToken == "" {
 		t.Skip("no parameters")
 	}
 
@@ -59,7 +59,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	token1 := os.Getenv("UPDATE_TOKEN")
 	address := os.Getenv("SERVER_ADDRESS")
 
-	context, err := CreateContext(accessToken, skStr, pubStr, "")
+	context, err := CreateContext(appToken, pubStr, skStr, "")
 	req.NoError(err)
 
 	proto, err := NewProtocol(context)
@@ -67,8 +67,8 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 
 	if address != "" {
 		proto.APIClient = &APIClient{
-			AccessToken: accessToken,
-			URL:         address,
+			AppToken: appToken,
+			URL:      address,
 		}
 	}
 
@@ -87,15 +87,15 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	req.Nil(key2)
 
 	//rotate happened
-	context, err = CreateContext(accessToken, skStr, pubStr, token1)
+	context, err = CreateContext(appToken, pubStr, skStr, token1)
 	req.NoError(err)
 	proto, err = NewProtocol(context)
 	req.NoError(err)
 
 	if address != "" {
 		proto.APIClient = &APIClient{
-			AccessToken: accessToken,
-			URL:         address,
+			AppToken: appToken,
+			URL:      address,
 		}
 	}
 

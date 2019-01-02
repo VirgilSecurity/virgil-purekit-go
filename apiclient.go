@@ -41,22 +41,25 @@ import (
 	"sync"
 )
 
+//APIClient implements API request layer
 type APIClient struct {
-	AccessToken string
-	URL         string
-	HTTPClient  *VirgilHTTPClient
-	once        sync.Once
+	AppToken   string
+	URL        string
+	HTTPClient *VirgilHTTPClient
+	once       sync.Once
 }
 
+//GetEnrollment receives random enrollment from service
 func (c *APIClient) GetEnrollment(req *EnrollmentRequest) (resp *EnrollmentResponse, err error) {
 	resp = &EnrollmentResponse{}
-	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, "enroll", req, resp)
+	_, err = c.getClient().Send(c.AppToken, http.MethodPost, "enroll", req, resp)
 	return
 }
 
+//VerifyPassword does not send password to server, only the part tat server provided in GetEnrollment
 func (c *APIClient) VerifyPassword(req *VerifyPasswordRequest) (resp *VerifyPasswordResponse, err error) {
 	resp = &VerifyPasswordResponse{}
-	_, err = c.getClient().Send(c.AccessToken, http.MethodPost, "verify-password", req, resp)
+	_, err = c.getClient().Send(c.AppToken, http.MethodPost, "verify-password", req, resp)
 	return
 }
 
@@ -64,14 +67,14 @@ func (c *APIClient) getClient() *VirgilHTTPClient {
 	c.once.Do(func() {
 		if c.HTTPClient == nil {
 			c.HTTPClient = &VirgilHTTPClient{
-				Address: c.getUrl(),
+				Address: c.getURL(),
 			}
 		}
 	})
 	return c.HTTPClient
 }
 
-func (c *APIClient) getUrl() string {
+func (c *APIClient) getURL() string {
 	if c.URL != "" {
 		return c.URL
 	}

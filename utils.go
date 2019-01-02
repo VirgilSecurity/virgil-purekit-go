@@ -43,6 +43,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+//MarshalRecord serializes enrolment record to protobuf
 func MarshalRecord(version uint32, rec []byte) ([]byte, error) {
 	if version < 1 {
 		return nil, errors.New("invalid version")
@@ -55,6 +56,7 @@ func MarshalRecord(version uint32, rec []byte) ([]byte, error) {
 	return proto.Marshal(dbRec)
 }
 
+//UnmarshalRecord deserializes record from protobuf
 func UnmarshalRecord(record []byte) (version uint32, rec []byte, err error) {
 
 	dbRecord := &DatabaseRecord{}

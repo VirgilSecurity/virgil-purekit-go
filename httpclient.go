@@ -53,16 +53,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// HTTPClient describes transport layer
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
+//VirgilHTTPClient implements transport layer
 type VirgilHTTPClient struct {
 	Client  HTTPClient
 	Address string
 	once    sync.Once
 }
 
+//Send performs http request with protobuf encoded payload & response
 func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, payload proto.Message, respObj proto.Message) (headers http.Header, err error) {
 	var body []byte
 	if payload != nil {
@@ -97,11 +100,10 @@ func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, pa
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, errors.New("not found")
 	}
-
 	if resp.StatusCode == http.StatusOK {
 		if respObj != nil {
 
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err = ioutil.ReadAll(resp.Body)
 
 			if err != nil {
 				return nil, errors.Wrap(err, "VirgilHTTPClient.Send: read body")

@@ -44,9 +44,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Protocol implements passw0rd client-server protocol
 type Protocol struct {
-	AccessToken    string
-	AppId          string
+	AppToken       string
 	PHEClients     map[uint32]*phe.Client
 	APIClient      *APIClient
 	CurrentVersion uint32
@@ -54,19 +54,21 @@ type Protocol struct {
 	once           sync.Once
 }
 
+//NewProtocol initializes new protocol instance with proper Context
 func NewProtocol(context *Context) (*Protocol, error) {
 
-	if context == nil || context.AccessToken == "" || context.PHEClients == nil {
+	if context == nil || context.AppToken == "" || context.PHEClients == nil {
 		return nil, errors.New("invalid context")
 	}
 	return &Protocol{
-		AccessToken:    context.AccessToken,
+		AppToken:       context.AppToken,
 		PHEClients:     context.PHEClients,
 		CurrentVersion: context.Version,
 		UpdateToken:    context.UpdateToken,
 	}, nil
 }
 
+//EnrollAccount requests pseudo-random data from server and uses it to protect password and daa encryption key
 func (p *Protocol) EnrollAccount(password string) (enrollmentRecord []byte, encryptionKey []byte, err error) {
 
 	req := &EnrollmentRequest{Version: p.CurrentVersion}
@@ -98,6 +100,7 @@ func (p *Protocol) EnrollAccount(password string) (enrollmentRecord []byte, encr
 
 }
 
+//VerifyPassword verifies a password against enrollment record using passw0rd service
 func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key []byte, err error) {
 
 	version, record, err := UnmarshalRecord(enrollmentRecord)
@@ -139,6 +142,7 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 	return key, nil
 }
 
+//UpdateEnrollmentRecord increments record version and updates it using provided update token
 func (p *Protocol) UpdateEnrollmentRecord(oldRecord []byte) (newRecord []byte, err error) {
 	version, record, err := UnmarshalRecord(oldRecord)
 
@@ -177,7 +181,7 @@ func (p *Protocol) getClient() *APIClient {
 	p.once.Do(func() {
 		if p.APIClient == nil {
 			p.APIClient = &APIClient{
-				AccessToken: p.AccessToken,
+				AppToken: p.AppToken,
 			}
 		}
 	})

@@ -25,7 +25,7 @@ PHE is a new, more secure mechanism that protects user passwords and lessens the
 Before starting practicing with the SDK and usage examples be sure that:
 - you have a registered passw0rd Account
 - you have a registered passw0rd Application
-- and you got your passw0rd application's credentials, such as: Application ID, Access Token, Service Public Key, Client Secret Key
+- and you got your passw0rd application's credentials, such as: Application Access Token, Service Public Key, Client Secret Key
 
 If you don't have an account or a passw0rd project with its credentials, please use the [passw0rd CLI](https://github.com/passw0rd/cli) to get it.
 
@@ -50,11 +50,11 @@ import (
 )
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
-    accessToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
+    appToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     skStr := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     pubStr := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
     
-    context, err := passw0rd.CreateContext(accessToken, skStr, pubStr, "")
+    context, err := passw0rd.CreateContext(appToken, skStr, pubStr, "")
     if err != nil{
         return nil, err
     }
@@ -117,7 +117,7 @@ import (
 
 // create a new encrypted password record using user password or its hash
 func EnrollAccount(password string) error{
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "CLIENT_SECRET_KEY", "SERVICE_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -160,7 +160,7 @@ import (
 
 
 func VerifyPassword(password string, record []byte) error{
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "CLIENT_SECRET_KEY", "SERVICE_PUBLIC_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -211,7 +211,7 @@ import (
 
 
 func UpdatePassword(oldRecord []byte) (newRecord[]byte, err error){
-    ctx, err := passw0rd.CreateContext("ACCESS_TOKEN", "CLIENT_SECRET_KEY", "SERVER_PUBLIC_KEY", "UPDATE_TOKEN")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "CLIENT_SECRET_KEY", "SERVICE_PUBLIC_KEY", "UPDATE_TOKEN")
     if err != nil {
         return
     }

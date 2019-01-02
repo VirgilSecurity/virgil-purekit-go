@@ -47,16 +47,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Context holds & validates protocol input parameters
 type Context struct {
-	AccessToken string
+	AppToken    string
 	PHEClients  map[uint32]*phe.Client
 	Version     uint32
 	UpdateToken *VersionedUpdateToken
 }
 
-func CreateContext(accessToken, clientSecretKey, serverPublicKey string, updateToken string) (*Context, error) {
+//CreateContext validates input parameters and prepares them for being used in Protocol
+func CreateContext(appToken, servicePublicKey string, clientSecretKey, updateToken string) (*Context, error) {
 
-	if clientSecretKey == "" || serverPublicKey == "" || accessToken == "" {
+	if clientSecretKey == "" || servicePublicKey == "" || appToken == "" {
 		return nil, errors.New("all parameters are mandatory")
 	}
 
@@ -65,7 +67,7 @@ func CreateContext(accessToken, clientSecretKey, serverPublicKey string, updateT
 		return nil, errors.Wrap(err, "invalid secret key")
 	}
 
-	pubVersion, pubBytes, err := ParseVersionAndContent("PK", serverPublicKey)
+	pubVersion, pubBytes, err := ParseVersionAndContent("PK", servicePublicKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid public key")
 	}
@@ -107,14 +109,12 @@ func CreateContext(accessToken, clientSecretKey, serverPublicKey string, updateT
 		}
 
 		phes[token.Version] = nextClient
-		currentSk, currentPub = nextSk, nextPub
 		currentVersion = token.Version
 	}
 
 	return &Context{
-		AccessToken: accessToken,
+		AppToken:    appToken,
 		PHEClients:  phes,
-
 		Version:     currentVersion,
 		UpdateToken: token,
 	}, nil
@@ -141,6 +141,7 @@ func parseToken(token string) (parsedToken *VersionedUpdateToken, err error) {
 	return parsedToken, nil
 }
 
+//ParseVersionAndContent splits string into 3 parts: Prefix, version and decoded base64 content
 func ParseVersionAndContent(prefix, str string) (version uint32, content []byte, err error) {
 	parts := strings.Split(str, ".")
 	if len(parts) != 3 || parts[0] != prefix {
