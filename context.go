@@ -98,7 +98,7 @@ func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken stri
 			return nil, fmt.Errorf("incorrect token version %d", token.Version)
 		}
 
-		nextSk, nextPub, err := phe.RotateClientKeys(currentSk, currentPub, token.UpdateToken)
+		nextSk, nextPub, err := phe.RotateClientKeys(currentPub, currentSk, token.UpdateToken)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not update keys using token")
 		}
