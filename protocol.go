@@ -142,41 +142,6 @@ func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key
 	return key, nil
 }
 
-//UpdateEnrollmentRecord increments record version and updates it using provided update token
-func (p *Protocol) UpdateEnrollmentRecord(oldRecord []byte) (newRecord []byte, err error) {
-	version, record, err := UnmarshalRecord(oldRecord)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid record")
-	}
-
-	if version == p.CurrentVersion {
-		return oldRecord, nil
-	}
-
-	if version > p.CurrentVersion {
-		return nil, errors.New("record's version is greater than protocol's version")
-	}
-
-	var newRec []byte
-	recVersion := version
-	for recVersion < p.CurrentVersion {
-		token := p.getToken(recVersion + 1)
-		if token == nil {
-			return nil, errors.New("protocol does not contain token to update record to the current version")
-		}
-
-		newRec, err = phe.UpdateRecord(record, token)
-		if err != nil {
-			return nil, err
-		}
-		recVersion++
-	}
-
-	newRecord, err = MarshalRecord(p.CurrentVersion, newRec)
-	return
-}
-
 func (p *Protocol) getClient() *APIClient {
 	p.once.Do(func() {
 		if p.APIClient == nil {

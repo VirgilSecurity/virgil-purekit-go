@@ -99,7 +99,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 		}
 	}
 
-	newRec, err := proto.UpdateEnrollmentRecord(rec)
+	newRec, err := UpdateEnrollmentRecord(rec, token1)
 	req.NoError(err)
 
 	key3, err := proto.VerifyPassword(pwd, newRec)

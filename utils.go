@@ -39,6 +39,8 @@ package passw0rd
 import (
 	"fmt"
 
+	"github.com/passw0rd/phe-go"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -75,4 +77,29 @@ func UnmarshalRecord(record []byte) (version uint32, rec []byte, err error) {
 
 func (m *HttpError) Error() string {
 	return fmt.Sprintf("%s", m.Message)
+}
+
+//UpdateEnrollmentRecord increments record version and updates it using provided update token
+func UpdateEnrollmentRecord(oldRecord []byte, updateToken string) (newRecord []byte, err error) {
+	recordVersion, record, err := UnmarshalRecord(oldRecord)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid recotd")
+	}
+	tokenVersion, token, err := ParseVersionAndContent("UT", updateToken)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid update token")
+	}
+	if (recordVersion + 1) == tokenVersion {
+		newRec, err := phe.UpdateRecord(record, token)
+		if err != nil {
+			return nil, err
+		}
+		return MarshalRecord(tokenVersion, newRec)
+	}
+
+	if recordVersion == tokenVersion {
+		return oldRecord, nil
+	}
+
+	return nil, errors.Errorf("Record and update token versions mismatch: %d and %d", recordVersion, tokenVersion)
 }
