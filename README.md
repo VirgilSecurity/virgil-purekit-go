@@ -220,7 +220,7 @@ func main(){
 		//something went wrong
 	}
 	
-	// newRecord is nil ONLY if oldRecord is already updated
+	// newRecord is nil ONLY if oldRecord was already updated
 	if newRecord != nil{
 	//save new record to the database
     	saveNewRecord(newRecord)	
