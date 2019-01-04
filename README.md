@@ -242,7 +242,6 @@ func main(){
     }
 
 }
-
 ```
 
 **Step 3.** Start migration. Since the SDK is able to work simultaneously with two versions of user's records (newRECORD and oldRECORD), this will not affect the backend or users.
