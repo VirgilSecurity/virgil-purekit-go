@@ -98,7 +98,7 @@ func UpdateEnrollmentRecord(oldRecord []byte, updateToken string) (newRecord []b
 	}
 
 	if recordVersion == tokenVersion {
-		return oldRecord, nil
+		return nil, nil
 	}
 
 	return nil, errors.Errorf("Record and update token versions mismatch: %d and %d", recordVersion, tokenVersion)

@@ -220,8 +220,8 @@ func main(){
 		//something went wrong
 	}
 	
-	// record won't change if it was already updated
-	if subtle.ConstantTimeCompare(oldRecord, newRecord) != 1{
+	// newRecord is nil ONLY if oldRecord is already updated
+	if newRecord != nil{
 	//save new record to the database
     	saveNewRecord(newRecord)	
 	}
