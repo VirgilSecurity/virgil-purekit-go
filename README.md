@@ -244,16 +244,16 @@ func main(){
 }
 ```
 
-**Step 3.** Start migration. Since the SDK is able to work simultaneously with two versions of user's records (newRECORD and oldRECORD), this will not affect the backend or users.
+**Step 3.** Start migration. Since the SDK is able to work simultaneously with two versions of user's records (`newRECORD` and `oldRECORD`), this will not affect the backend or users.
 
-This means, if a user logs into your system when you do the migration, the passw0rd SDK will verify his password without any troubleshooting because Passw0rd Service already knows about both user's records (newRECORD and oldRECORD).
+This means, if a user logs into your system when you do the migration, the passw0rd SDK will verify his password without any troubleshooting because Passw0rd Service already knows about both user's records (`newRECORD` and `oldRECORD`).
 
 So, run the `UpdateEnrollmentRecord()` function and save the new user's `record` into your database.
 
 
-**Step 4.** Update the `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application
+**Step 4.** Get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application
 
-Use passw0rd CLI `update-keys` command and your `UPDATE_TOKEN` to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`:
+Use passw0rd CLI `update-keys` command and your `UPDATE_TOKEN` to update the `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`:
 
 ```bash
 ./passw0rd application update-keys <service_public_key> <app_secret_key> <update_token>
