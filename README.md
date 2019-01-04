@@ -117,7 +117,7 @@ import (
 
 // create a new encrypted password record using user password or its hash
 func EnrollAccount(password string) error{
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "APP_SECRET_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -160,7 +160,7 @@ import (
 
 
 func VerifyPassword(password string, record []byte) error{
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "APP_SECRET_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -197,39 +197,37 @@ When a user just needs to change his or her own password, use the `enroll` funct
 
 How it works:
 - Get your `UpdateToken` using [Passw0rd CLI](https://github.com/passw0rd/cli).
-- Specify the `UpdateToken` in the Passw0rd SDK on your Server side.
-- Then use the `Update` records function to create new user's `record` for your users (you don't need to ask your users to create a new password).
+- Then use the `UpdateEnrollmentRecord()` function to create new user's `record` for your users (you don't need to ask your users to create a new password).
 - Finally, save the new user's `record` into your database.
 
-Here is an example of using the `Update` records function:
+Here is an example of using the `UpdateEnrollmentRecord` function:
 ```go
 package main
 
 import (
+	"crypto/subtle"
     "github.com/passw0rd/sdk-go"
 )
 
-
-func UpdatePassword(oldRecord []byte) (newRecord[]byte, err error){
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "APP_SECRET_KEY", "UPDATE_TOKEN")
-    if err != nil {
-        return
-    }
-
-    prot, err := passw0rd.NewProtocol(ctx)
-    if err != nil {
-        return
-    }
-
-    //return updated record
-    newRecord, err = prot.UpdateEnrollmentRecord(oldRecord)
-    if err != nil {
-        return
-    }
-
-    return
-
+func main(){
+	
+	//get old record from the database
+	oldRecord := ...
+	
+	//update old record
+	newRecord, err := passw0rd.UpdateEnrollmentRecord(oldRecord, "UPDATE_TOKEN")
+	if err != nil{
+		//something went wrong
+	}
+	
+	// record won't change if it was already updated
+	if subtle.ConstantTimeCompare(oldRecord, newRecord) != 1{
+	//save new record to the database
+    	saveNewRecord(newRecord)	
+	}
+	
 }
+
 ```
 
 
