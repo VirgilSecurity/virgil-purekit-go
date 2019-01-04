@@ -53,7 +53,7 @@ func InitPassw0rd() (*passw0rd.Protocol, error){
     appToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     appSecretKey := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
-    
+
     context, err := passw0rd.CreateContext(appToken, servicePublicKey, appSecretKey, "")
     if err != nil{
         return nil, err
@@ -147,7 +147,7 @@ When you've created a `passw0rd_record` for all users in your DB, you can delete
 
 ### Verify User passw0rd
 
-Use this flow at the "sign in" step when a user already has his or her own unique `record` in your database. This function allows you to verify that the password that the user has passed is correct. 
+Use this flow at the "sign in" step when a user already has his or her own unique `record` in your database. This function allows you to verify that the password that the user has passed is correct.
 You have to pass his or her `record` from your DB into the `VerifyPassword` function:
 
 ```go
@@ -188,47 +188,83 @@ func VerifyPassword(password string, record []byte) error{
 ```
 
 
-### Rotate User passw0rd
+## Rotate app keys and user record
 
-This function allows you to use a special `UpdateTokens` to update users' `record` in your database.
+There can never be enough security, so you should rotate your sensitive data regularly (about once a week). Use this flow to get an `UPDATE_TOKEN` for updating user's passw0rd `RECORD` in your database and to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application.
 
-> Use this flow only if your database has been COMPROMISED!
-When a user just needs to change his or her own password, use the `enroll` function to replace old user's `passw0rd_record` value in your DB with a new user's `passw0rd_record`.
+Also, use this flow in case your database has been COMPROMISED!
 
-How it works:
-- Get your `UpdateToken` using [Passw0rd CLI](https://github.com/passw0rd/cli).
-- Then use the `UpdateEnrollmentRecord()` function to create new user's `record` for your users (you don't need to ask your users to create a new password).
-- Finally, save the new user's `record` into your database.
+> This action doesn't require to create an additional table or to do any modification with available one. When a user just needs to change his or her own password, use the EnrollAccount function to replace user's old passw0rd record value in your DB with a new record.
 
-Here is an example of using the `UpdateEnrollmentRecord` function:
+There is how it works:
+
+**Step 1.** Get your `UPDATE_TOKEN` using [Passw0rd CLI](https://github.com/passw0rd/cli)
+
+- be sure you're logged in your account. To log in the account use the following command (2FA is required):
+
+```bash
+./passw0rd login my@email.com
+```
+
+- then, use the `rotate` command and your application token to get an `UPDATE_TOKEN`:
+
+```bash
+./passw0rd application rotate <app_token>
+```
+as a result, you get your `UPDATE_TOKEN`.
+
+
+**Step 2.** Use the `UpdateEnrollmentRecord()` SKD function to create a user's `newRECORD` (you don't need to ask your users to create a new password). The `UpdateEnrollmentRecord()` function requires the `UPDATE_TOKEN` and user's `oldRECORD` from your DB:
+
 ```go
 package main
 
 import (
-	"crypto/subtle"
+    "crypto/subtle"
     "github.com/passw0rd/sdk-go"
 )
 
 func main(){
-	
-	//get old record from the database
-	oldRecord := ...
-	
-	//update old record
-	newRecord, err := passw0rd.UpdateEnrollmentRecord(oldRecord, "UPDATE_TOKEN")
-	if err != nil{
-		//something went wrong
-	}
-	
-	// newRecord is nil ONLY if oldRecord is already updated
-	if newRecord != nil{
-	//save new record to the database
-    	saveNewRecord(newRecord)	
-	}
-	
+
+    //get old record from the database
+    oldRecord := ...
+
+    //update old record
+    newRecord, err := passw0rd.UpdateEnrollmentRecord(oldRecord, "UPDATE_TOKEN")
+    if err != nil{
+        //something went wrong
+    }
+
+    // newRecord is nil ONLY if oldRecord is already updated
+    if newRecord != nil{
+        //save new record to the database
+        saveNewRecord(newRecord)
+    }
+
 }
 
 ```
+
+**Step 3.** Start migration. Since the SDK is able to work simultaneously with two versions of user's records (newRECORD and oldRECORD), this will not affect the backend or users.
+
+This means, if a user logs into your system when you do the migration, the passw0rd SDK will verify his password without any troubleshooting because Passw0rd Service already knows about both user's records (newRECORD and oldRECORD).
+
+So, run the `UpdateEnrollmentRecord()` function and save the new user's `record` into your database.
+
+
+**Step 4.** Update the `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application
+
+Use passw0rd CLI `update-keys` command and your `UPDATE_TOKEN` to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`:
+
+```bash
+./passw0rd application update-keys <service_public_key> <app_secret_key> <update_token>
+```
+
+
+**Step 5.** Move to passw0rd SDK configuration and replace your previous `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` with a new one. Delete previous `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`.
+
+
+
 
 
 ## Docs
