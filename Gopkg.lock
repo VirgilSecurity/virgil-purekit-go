@@ -19,22 +19,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b2893b6639edd4a36e9a212eed9e8ee258ea6cef11415dd50c15e87b17e27635"
+  digest = "1:666ab71febeddb92fbdc077f84deeaf4b1859873cff6603ae2a8c5c276b8ba09"
   name = "github.com/passw0rd/phe-go"
   packages = [
     ".",
     "swu",
   ]
   pruneopts = "UT"
-  revision = "30f6cc3e9b8b178f447765987c0552bb777a5c87"
+  revision = "78ade79427b525412ff6cb0e51a07241b9ef6cc5"
 
 [[projects]]
-  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -61,7 +61,7 @@
   name = "golang.org/x/crypto"
   packages = ["hkdf"]
   pruneopts = "UT"
-  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+  revision = "ff983b9c42bc9fbf91556e191cc8efb585c16908"
 
 [solve-meta]
   analyzer-name = "dep"
