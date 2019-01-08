@@ -19,14 +19,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:666ab71febeddb92fbdc077f84deeaf4b1859873cff6603ae2a8c5c276b8ba09"
+  digest = "1:14153c001dc6e0c0769741b16a21b1e1a5c22915c066d85e128219a7dddfc734"
   name = "github.com/passw0rd/phe-go"
   packages = [
     ".",
     "swu",
   ]
   pruneopts = "UT"
-  revision = "78ade79427b525412ff6cb0e51a07241b9ef6cc5"
+  revision = "b187aeda5ade7c352315636c8e2ba6981855736f"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -45,15 +45,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
+  digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "require",
   ]
   pruneopts = "UT"
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
