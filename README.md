@@ -213,8 +213,31 @@ There is how it works:
 ```
 as a result, you get your `UPDATE_TOKEN`.
 
+**Step 2.** Initialize passw0rd SDK with the `UPDATE_TOKEN`
+Move to passw0rd SDK configuration file and specify your `UPDATE_TOKEN`:
 
-**Step 2.** Use the `UpdateEnrollmentRecord()` SKD function to create a user's `newRECORD` (you don't need to ask your users to create a new password). The `UpdateEnrollmentRecord()` function requires the `UPDATE_TOKEN` and user's `oldRECORD` from your DB:
+```go
+// here set your passw0rd credentials
+import (
+    "github.com/passw0rd/sdk-go"
+)
+
+func InitPassw0rd() (*passw0rd.Protocol, error){
+    appToken := "PT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
+    appSecretKey := "SK.1.000jofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
+    servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6Vdf00000QQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
+    updateToken := "UT.2.00000000+0000000000000000000008UfxXDUU2FGkMvKhIgqjxA+hsAtf17K5j11Cnf07jB6uVEvxMJT0lMGv00000="
+
+    context, err := passw0rd.CreateContext(appToken, servicePublicKey, appSecretKey, updateToken)
+    if err != nil{
+        return nil, err
+    }
+
+    return passw0rd.NewProtocol(context)
+}
+```
+
+**Step 3.** Use the `UpdateEnrollmentRecord()` SKD function to create a user's `newRECORD` (you don't need to ask your users to create a new password). The `UpdateEnrollmentRecord()` function requires the `UPDATE_TOKEN` and user's `oldRECORD` from your DB:
 
 ```go
 package main
@@ -244,14 +267,14 @@ func main(){
 }
 ```
 
-**Step 3.** Start migration. Since the SDK is able to work simultaneously with two versions of user's records (`newRECORD` and `oldRECORD`), this will not affect the backend or users.
+**Step 4.** Start migration. Since the SDK is able to work simultaneously with two versions of user's records (`newRECORD` and `oldRECORD`), this will not affect the backend or users.
 
 This means, if a user logs into your system when you do the migration, the passw0rd SDK will verify his password without any troubleshooting because Passw0rd Service already knows about both user's records (`newRECORD` and `oldRECORD`).
 
 So, run the `UpdateEnrollmentRecord()` function and save the new user's `record` into your database.
 
 
-**Step 4.** Get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application
+**Step 5.** Get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application
 
 Use passw0rd CLI `update-keys` command and your `UPDATE_TOKEN` to update the `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`:
 
@@ -259,10 +282,28 @@ Use passw0rd CLI `update-keys` command and your `UPDATE_TOKEN` to update the `AP
 ./passw0rd application update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
+**Step 6.** Move to passw0rd SDK configuration and replace your previous `APP_SECRET_KEY`, `APP_TOKEN` and `SERVICE_PUBLIC_KEY` with a new one. Delete previous `APP_SECRET_KEY`, `APP_TOKEN` and `SERVICE_PUBLIC_KEY`.
 
-**Step 5.** Move to passw0rd SDK configuration and replace your previous `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` with a new one. Delete previous `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`.
+```go
+// here set your passw0rd credentials
+import (
+    "github.com/passw0rd/sdk-go"
+)
+
+func InitPassw0rd() (*passw0rd.Protocol, error){
+    appToken := "NEW_APP_TOKEN_HERE"
+    appSecretKey := "NEW_APP_SECRET_KEY_HERE"
+    servicePublicKey := "NEW_SERVICE_PUBLIC_KEY_HERE"
 
 
+    context, err := passw0rd.CreateContext(appToken, servicePublicKey, appSecretKey, "")
+    if err != nil{
+        return nil, err
+    }
+
+    return passw0rd.NewProtocol(context)
+}
+```
 
 
 
