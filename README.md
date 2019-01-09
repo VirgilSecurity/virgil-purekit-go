@@ -189,7 +189,6 @@ func VerifyPassword(password string, record []byte) error{
 
 
 ## Rotate app keys and user record
-
 There can never be enough security, so you should rotate your sensitive data regularly (about once a week). Use this flow to get an `UPDATE_TOKEN` for updating user's passw0rd `RECORD` in your database and to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application.
 
 Also, use this flow in case your database has been COMPROMISED!
