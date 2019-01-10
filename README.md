@@ -117,7 +117,7 @@ import (
 
 // create a new encrypted password record using user password or its hash
 func EnrollAccount(password string) error{
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPTIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -160,7 +160,7 @@ import (
 
 
 func VerifyPassword(password string, record []byte) error{
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPIONAL_UPDATE_TOKEN]")
+    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPTIONAL_UPDATE_TOKEN]")
     if err != nil {
         return err
     }
@@ -236,7 +236,7 @@ func InitPassw0rd() (*passw0rd.Protocol, error){
 }
 ```
 
-**Step 3.** Use the `UpdateEnrollmentRecord()` SKD function to create a user's `newRECORD` (you don't need to ask your users to create a new password). The `UpdateEnrollmentRecord()` function requires the `UPDATE_TOKEN` and user's `oldRECORD` from your DB:
+**Step 3.** Use the `UpdateEnrollmentRecord()` SDK function to create a user's `newRECORD` (you don't need to ask your users to create a new password). The `UpdateEnrollmentRecord()` function requires the `UPDATE_TOKEN` and user's `oldRECORD` from your DB:
 
 ```go
 package main
