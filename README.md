@@ -39,6 +39,12 @@ Install passw0rd SDK library with the following code:
 ```bash
 go get -u github.com/passw0rd/sdk-go
 ```
+Passw0rd Go SDK uses Dep to do manage its dependencies:
+Please install [dep](https://golang.github.io/dep/docs/installation.html) and run the following commands:
+```bash
+cd $(go env GOPATH)/src/github.com/passw0rd/sdk-go
+dep ensure
+```
 
 
 ### Configure SDK
