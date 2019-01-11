@@ -15,18 +15,18 @@
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f"
+  revision = "347cf4a86c1cb8d262994d8ef5924d4576c5b331"
 
 [[projects]]
   branch = "master"
-  digest = "1:14153c001dc6e0c0769741b16a21b1e1a5c22915c066d85e128219a7dddfc734"
+  digest = "1:8ad4e062258dc3d193cead76f44460cfbfc19c309e1ed9f8935b8eb67d2ce077"
   name = "github.com/passw0rd/phe-go"
   packages = [
     ".",
     "swu",
   ]
   pruneopts = "UT"
-  revision = "b187aeda5ade7c352315636c8e2ba6981855736f"
+  revision = "03eb765a068b23af843a9c29592e4b31f8d9161f"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
