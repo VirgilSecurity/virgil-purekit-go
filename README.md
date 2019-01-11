@@ -202,13 +202,21 @@ There is how it works:
 - be sure you're logged in your account. To log in the account use the following command (2FA is required):
 
 ```bash
+// FreeBSD / Linux / Mac OS
 ./passw0rd login my@email.com
+
+// Windows OS
+passw0rd login my@email.com
 ```
 
 - then, use the `rotate` command and your application token to get an `UPDATE_TOKEN`:
 
 ```bash
+// FreeBSD / Linux / Mac OS
 ./passw0rd application rotate <app_token>
+
+// Windows OS
+passw0rd application rotate <app_token>
 ```
 as a result, you get your `UPDATE_TOKEN`.
 
@@ -278,7 +286,11 @@ So, run the `UpdateEnrollmentRecord()` function and save the new user's `record`
 Use passw0rd CLI `update-keys` command and your `UPDATE_TOKEN` to update the `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY`:
 
 ```bash
+// FreeBSD / Linux / Mac OS
 ./passw0rd application update-keys <service_public_key> <app_secret_key> <update_token>
+
+// Windows OS
+passw0rd application update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
 **Step 6.** Move to passw0rd SDK configuration and replace your previous `APP_SECRET_KEY`,  `SERVICE_PUBLIC_KEY` with a new one (`APP_TOKEN` will be the same). Delete previous `APP_SECRET_KEY`, `SERVICE_PUBLIC_KEY` and `UPDATE_TOKEN`.
