@@ -102,7 +102,7 @@ Use this flow to create a new passw0rd record for a user in your DB.
 > Remember, if you already have a database with user passwords, you don't have to wait until a user logs in to your system to implement Passw0rd. You can go through your database and enroll user passw0rd at any time.
 
 So, in order to create passw0rd for a new database or an available one, go through the following operations:
-- Take user's **password** (or its hash or whatever you use) and pass it into the `EnrollAsync` function in SDK on your Server side.
+- Take user's **password** (or its hash or whatever you use) and pass it into the `EnrollAccount` function in SDK on your Server side.
 - Passw0rd SDK will send a request to passw0rd service to get enrollment.
 - Then, passw0rd SDK will create user's passw0rd **record**. You need to store this unique user's `record` (recordBytes or recordBase64 format) in your database in an associated column.
 
@@ -212,7 +212,7 @@ There is how it works:
 ```
 as a result, you get your `UPDATE_TOKEN`.
 
-**Step 2.** Initialize passw0rd SDK with the `UPDATE_TOKEN`
+**Step 2.** Initialize passw0rd SDK with the `UPDATE_TOKEN`.
 Move to passw0rd SDK configuration file and specify your `UPDATE_TOKEN`:
 
 ```go
