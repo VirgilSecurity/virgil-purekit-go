@@ -224,12 +224,12 @@ func main() {
     if err != nil {
         panic(err)
     }
-    decryted, err := phe.Decrypt(ciphertext, encryptionKey)
+    decrypted, err := phe.Decrypt(ciphertext, encryptionKey)
     if err != nil {
         panic(err)
     }
 
-    fmt.Println(decryted)
+    fmt.Println(decrypted)
 }
 ```
 Encryption is performed using AES256-GCM with key & nonce derived from the master key using HKDF and random 256-bit salt.
