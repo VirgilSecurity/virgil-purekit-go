@@ -140,8 +140,8 @@ func EnrollAccount(password string) error{
 
     //save record to database
     fmt.Printf("Database record: %s\n", base64.StdEncoding.EncodeToString(record))
-    //use encryption key for protecting user data
-    fmt.Printf("Encryption key: %x\n", key)
+    //use encryptionKey for protecting user data
+    fmt.Printf("Encryption key: %x\n", encryptionKey)
 
     return nil
 
@@ -185,13 +185,56 @@ func VerifyPassword(password string, record []byte) error{
         return err //some other error
     }
 
-    //use encryption key for decrypting user data
-    fmt.Printf("Encryption key: %x\n", key)
+    //use encryptionKey for decrypting user data
+    fmt.Printf("Encryption key: %x\n", encryptionKey)
 
     return nil
 
 }
 ```
+
+## Encrypt user data in your database
+
+Not only user's password is a sensitive data. In this flow we will help you to protect any Personally identifiable information (PII) in your database.
+
+PII is a data that could potentially identify a specific individual, and PII can be sensitive.
+Sensitive PII is information which, when disclosed, could result in harm to the individual whose privacy has been breached. Sensitive PII should therefore be encrypted in transit and when data is at rest. Such information includes biometric information, medical information, personally identifiable financial information (PIFI) and unique identifiers such as passport or Social Security numbers.
+
+Passw0rd service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from `EnrollAccount` or `VerifyPassword` functions. The `encryptionKey` will be the same for both functions.
+
+In addition, this key is unique to a particular user and won't be changed even after rotating (updating) the user's `passw0rd record`. The `encryptionKey` will be updated after user changes own password.
+
+Here is an example of data encryption/decryption with an `encryptionKey`:
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/passw0rd/phe-go"
+)
+
+func main() {
+
+    //key is obtained from proto.EnrollAccount() or proto.VerifyPassword() calls
+
+    data := []byte("Personal data")
+
+    ciphertext, err := phe.Encrypt(data, encryptionKey)
+    if err != nil {
+        panic(err)
+    }
+    decryted, err := phe.Decrypt(ciphertext, encryptionKey)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Println(decryted)
+}
+```
+Encryption is performed using AES256-GCM with key & nonce derived from the master key using HKDF and random 256-bit salt.
+
+Virgil Security knows nothing about a user's `encryptionKey`, because the key is calculated every time when you execute `EnrollAccount` or `VerifyPassword` functions at your server side.
 
 
 ## Rotate app keys and user record
