@@ -234,7 +234,7 @@ func main() {
 ```
 Encryption is performed using AES256-GCM with key & nonce derived from the master key using HKDF and random 256-bit salt.
 
-Virgil Security knows nothing about a user's `encryptionKey`, because the key is calculated every time when you execute `EnrollAccount` or `VerifyPassword` functions at your server side.
+Virgil Security has Zero knowledge about a user's `encryptionKey`, because the key is calculated every time when you execute `EnrollAccount` or `VerifyPassword` functions at your server side.
 
 
 ## Rotate app keys and user record
