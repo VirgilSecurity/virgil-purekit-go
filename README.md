@@ -194,11 +194,11 @@ Not only user's password is a sensitive data. In this flow we will help you to p
 PII is a data that could potentially identify a specific individual, and PII can be sensitive.
 Sensitive PII is information which, when disclosed, could result in harm to the individual whose privacy has been breached. Sensitive PII should therefore be encrypted in transit and when data is at rest. Such information includes biometric information, medical information, personally identifiable financial information (PIFI) and unique identifiers such as passport or Social Security numbers.
 
-Passw0rd service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from `EnrollAccount` or `VerifyPassword` functions, the key will be the same for both functions.
+Passw0rd service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from `EnrollAccount` or `VerifyPassword` functions. The `encryptionKey` will be the same for both functions.
 
-In addition, this key is unique to a particular user and can't be changed even after updating the user's `passw0rd record`.
+In addition, this key is unique to a particular user and won't be changed even after rotating (updating) the user's `passw0rd record`. The `encryptionKey` will be updated after user changes own password.
 
-Here is an example of data encryption/decryption with `encryptionKey`:
+Here is an example of data encryption/decryption with an `encryptionKey`:
 
 ```go
 package main
@@ -227,6 +227,8 @@ func main() {
 }
 ```
 Encryption is performed using AES256-GCM with key & nonce derived from the master key using HKDF and random 256-bit salt.
+
+Virgil Security knows nothing about a user's `encryptionKey`, because the key is calculated every time when you execute `EnrollAccount` or `VerifyPassword` functions at your server side.
 
 
 ## Rotate app keys and user record
