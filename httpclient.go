@@ -86,7 +86,7 @@ func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, pa
 		return nil, errors.Wrap(err, "VirgilHTTPClient.Send: new request")
 	}
 
-	req.Header.Add("User-Agent", "Virgil Passw0rd Go SDK")
+	req.Header.Add("Virgil-Agent", getAgentHeader())
 
 	if token != "" {
 		req.Header.Add("AppToken", token)

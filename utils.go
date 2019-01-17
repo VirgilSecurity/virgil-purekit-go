@@ -38,11 +38,18 @@ package passw0rd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/passw0rd/phe-go"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+)
+
+const (
+	// Version represents passw0rd SDK version
+	Version = "v1.0.1"
+	header  = "passw0rd;go;%s;%s"
 )
 
 //MarshalRecord serializes enrolment record to protobuf
@@ -102,4 +109,8 @@ func UpdateEnrollmentRecord(oldRecord []byte, updateToken string) (newRecord []b
 	}
 
 	return nil, errors.Errorf("Record and update token versions mismatch: %d and %d", recordVersion, tokenVersion)
+}
+
+func getAgentHeader() string {
+	return fmt.Sprintf(header, runtime.GOOS, Version)
 }

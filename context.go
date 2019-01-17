@@ -58,8 +58,8 @@ type Context struct {
 //CreateContext validates input parameters and prepares them for being used in Protocol
 func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken string) (*Context, error) {
 
-	if clientSecretKey == "" || servicePublicKey == "" || appToken == "" {
-		return nil, errors.New("all parameters are mandatory")
+	if appToken == "" {
+		return nil, errors.New("app token is mandatory")
 	}
 
 	skVersion, sk, err := ParseVersionAndContent("SK", clientSecretKey)
@@ -77,7 +77,7 @@ func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken stri
 	}
 
 	currentSk, currentPub := sk, pubBytes
-	pheClient, err := phe.NewClient(currentSk, currentPub)
+	pheClient, err := phe.NewClient(currentPub, currentSk)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create PHE client")
@@ -94,22 +94,11 @@ func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken stri
 	currentVersion := pubVersion
 
 	if token != nil {
-		if token.Version != currentVersion+1 {
-			return nil, fmt.Errorf("incorrect token version %d", token.Version)
+		curVer, err := processToken(token, phes, currentVersion, currentPub, currentSk)
+		if err == nil {
+			return nil, err
 		}
-
-		nextSk, nextPub, err := phe.RotateClientKeys(currentPub, currentSk, token.UpdateToken)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not update keys using token")
-		}
-
-		nextClient, err := phe.NewClient(nextSk, nextPub)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not create PHE client")
-		}
-
-		phes[token.Version] = nextClient
-		currentVersion = token.Version
+		currentVersion = curVer
 	}
 
 	return &Context{
@@ -118,6 +107,26 @@ func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken stri
 		Version:     currentVersion,
 		UpdateToken: token,
 	}, nil
+}
+
+func processToken(token *VersionedUpdateToken, clients map[uint32]*phe.Client, curVer uint32, currentPub, currentSk []byte) (currentVersion uint32, err error) {
+	if token.Version != curVer+1 {
+		return 0, fmt.Errorf("incorrect token version %d", token.Version)
+	}
+
+	nextSk, nextPub, err := phe.RotateClientKeys(currentPub, currentSk, token.UpdateToken)
+	if err != nil {
+		return 0, errors.Wrap(err, "could not update keys using token")
+	}
+
+	nextClient, err := phe.NewClient(nextPub, nextSk)
+	if err != nil {
+		return 0, errors.Wrap(err, "could not create PHE client")
+	}
+
+	clients[token.Version] = nextClient
+	currentVersion = token.Version
+	return
 }
 
 func parseToken(token string) (parsedToken *VersionedUpdateToken, err error) {

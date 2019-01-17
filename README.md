@@ -119,6 +119,7 @@ import (
     "encoding/base64"
     "fmt"
     "github.com/passw0rd/sdk-go"
+    "github.com/passw0rd/phe-go"
 )
 
 // create a new encrypted password record using user password or its hash
@@ -139,11 +140,10 @@ func EnrollAccount(password string) error{
     }
 
     //save record to database
-    fmt.Printf("Database record: %s\n", base64.StdEncoding.EncodeToString(record))
+    fmt.Printf("Database record:\n%s\n", base64.StdEncoding.EncodeToString(record))
     //use encryptionKey for protecting user data
-    fmt.Printf("Encryption key: %x\n", encryptionKey)
-
-    return nil
+    encrypted, err := phe.Encrypt(data, key)
+    ...
 
 }
 ```
@@ -161,6 +161,7 @@ package main
 
 import (
     "fmt"
+    "github.com/passw0rd/phe-go"
     "github.com/passw0rd/sdk-go"
 )
 
@@ -186,9 +187,8 @@ func VerifyPassword(password string, record []byte) error{
     }
 
     //use encryptionKey for decrypting user data
-    fmt.Printf("Encryption key: %x\n", encryptionKey)
-
-    return nil
+    decrypted, err := phe.Decrypt(encrypted, key)
+    ...
 
 }
 ```
@@ -229,7 +229,7 @@ func main() {
         panic(err)
     }
 
-    fmt.Println(decrypted)
+    //use decrypted data
 }
 ```
 Encryption is performed using AES256-GCM with key & nonce derived from the master key using HKDF and random 256-bit salt.
