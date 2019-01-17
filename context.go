@@ -95,7 +95,7 @@ func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken stri
 
 	if token != nil {
 		curVer, err := processToken(token, phes, currentVersion, currentPub, currentSk)
-		if err == nil {
+		if err != nil {
 			return nil, err
 		}
 		currentVersion = curVer
