@@ -123,17 +123,8 @@ import (
 )
 
 // create a new encrypted password record using user password or its hash
-func EnrollAccount(password string) error{
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPTIONAL_UPDATE_TOKEN]")
-    if err != nil {
-        return err
-    }
-
-    prot, err := passw0rd.NewProtocol(ctx)
-    if err != nil {
-        return err
-    }
-
+func EnrollAccount(password string, prot *passw0rd.Protocol) error{
+    
     record, key, err := prot.EnrollAccount(password)
     if err != nil {
         return err
@@ -166,17 +157,7 @@ import (
 )
 
 
-func VerifyPassword(password string, record []byte) error{
-    ctx, err := passw0rd.CreateContext("APP_TOKEN", "SERVICE_PUBLIC_KEY", "CLIENT_SECRET_KEY", "[OPTIONAL_UPDATE_TOKEN]")
-    if err != nil {
-        return err
-    }
-
-    prot, err := passw0rd.NewProtocol(ctx)
-    if err != nil {
-        return err
-    }
-
+func VerifyPassword(password string, record []byte, prot *passw0rd.Protocol) error{
     key, err := prot.VerifyPassword(password, record)
     if err != nil {
 
