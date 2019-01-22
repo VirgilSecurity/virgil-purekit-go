@@ -39,6 +39,7 @@ package passw0rd
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -100,6 +101,7 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 		}
 	}
 
+	time.Sleep(2 * time.Second)
 	//verify version 1 with token
 	key3, err := proto.VerifyPassword(pwd, rec)
 	req.NoError(err)
