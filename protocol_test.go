@@ -73,11 +73,12 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	}
 
 	const pwd = "p@ssw0Rd"
+	//enroll version 1
 	rec, key, err := proto.EnrollAccount(pwd)
 	req.NoError(err)
 	req.True(len(rec) > 0)
 	req.True(len(key) == 32)
-
+	//verify version 1
 	key1, err := proto.VerifyPassword(pwd, rec)
 	req.NoError(err)
 	req.Equal(key, key1)
@@ -99,11 +100,29 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 		}
 	}
 
-	newRec, err := UpdateEnrollmentRecord(rec, token1)
-	req.NoError(err)
-
-	key3, err := proto.VerifyPassword(pwd, newRec)
+	//verify version 1 with token
+	key3, err := proto.VerifyPassword(pwd, rec)
 	req.NoError(err)
 	req.Equal(key, key3)
 
+	newRec, err := UpdateEnrollmentRecord(rec, token1)
+	req.NoError(err)
+
+	//verify version 2
+	key4, err := proto.VerifyPassword(pwd, newRec)
+	req.NoError(err)
+	req.Equal(key, key4)
+
+	//enroll version 2
+	rec, key, err = proto.EnrollAccount("passw0rd")
+	req.NoError(err)
+
+	version, _, err := UnmarshalRecord(rec)
+	req.NoError(err)
+	req.Equal(version, uint32(2))
+
+	//verify version 2
+	key2, err = proto.VerifyPassword("passw0rd", rec)
+	req.NoError(err)
+	req.Equal(key2, key)
 }
