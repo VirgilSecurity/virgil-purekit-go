@@ -90,7 +90,7 @@ func (m *HttpError) Error() string {
 func UpdateEnrollmentRecord(oldRecord []byte, updateToken string) (newRecord []byte, err error) {
 	recordVersion, record, err := UnmarshalRecord(oldRecord)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid recotd")
+		return nil, errors.Wrap(err, "invalid record")
 	}
 	tokenVersion, token, err := ParseVersionAndContent("UT", updateToken)
 	if err != nil {
