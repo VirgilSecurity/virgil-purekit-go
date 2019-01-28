@@ -107,9 +107,10 @@ func TestProtocol_EnrollAccount(t *testing.T) {
 	req.NoError(err)
 	req.Equal(key, key3)
 
-	newRec, err := UpdateEnrollmentRecord(rec, token1)
+	updater, err := NewRecordUpdater(token1)
 	req.NoError(err)
-
+	newRec, err := updater.UpdateRecord(rec)
+	req.NoError(err)
 	//verify version 2
 	key4, err := proto.VerifyPassword(pwd, newRec)
 	req.NoError(err)

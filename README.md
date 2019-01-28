@@ -275,7 +275,7 @@ func InitPassw0rd() (*passw0rd.Protocol, error){
 }
 ```
 
-**Step 3.** Start migration. Use the `UpdateEnrollmentRecord()` SDK function to create a user's `newRecord` (you don't need to ask your users to create a new password). The `UpdateEnrollmentRecord()` function requires the `update_token` and user's `oldRecord` from your DB:
+**Step 3.** Start migration. Use the `NewRecordUpdater("UPDATE_TOKEN")` SDK function to create an instance of class that will update your old records to new ones (you don't need to ask your users to create a new password). The `UpdateRecord()` function requires user's `oldRecord` from your DB:
 
 ```go
 package main
@@ -286,17 +286,23 @@ import (
 )
 
 func main(){
-
+	
+	updater, err := passw0rd.NewRecordUpdater("UPDATE_TOKEN")
+	if err != nil{
+            //something went wrong
+    }
+	
+    //for each record
     //get old record from the database
     oldRecord := ...
 
     //update old record
-    newRecord, err := passw0rd.UpdateEnrollmentRecord(oldRecord, "UPDATE_TOKEN")
+    newRecord, err := updater.UpdateRecord(oldRecord)
     if err != nil{
         //something went wrong
     }
 
-    // newRecord is nil ONLY if oldRecord is already updated
+    // newRecord is nil ONLY if oldRecord is already the latest version
     if newRecord != nil{
         //save new record to the database
         saveNewRecord(newRecord)
@@ -305,7 +311,7 @@ func main(){
 }
 ```
 
-So, run the `UpdateEnrollmentRecord()` function and save user's `newRecord` into your database.
+So, run the `UpdateRecord()` function and save user's `newRecord` into your database.
 
 Since the SDK is able to work simultaneously with two versions of user's records (`newRecord` and `oldRecord`), this will not affect the backend or users. This means, if a user logs into your system when you do the migration, the passw0rd SDK will verify his password without any problems because Passw0rd Service can work with both user's records (`newRecord` and `oldRecord`).
 

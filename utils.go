@@ -87,6 +87,7 @@ func (m *HttpError) Error() string {
 }
 
 //UpdateEnrollmentRecord increments record version and updates it using provided update token
+//It returns nil record if versions match
 func UpdateEnrollmentRecord(oldRecord []byte, updateToken string) (newRecord []byte, err error) {
 	recordVersion, record, err := UnmarshalRecord(oldRecord)
 	if err != nil {
