@@ -40,7 +40,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/passw0rd/phe-go"
+	"github.com/VirgilSecurity/virgil-phe-go"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"

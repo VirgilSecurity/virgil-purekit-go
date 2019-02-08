@@ -42,7 +42,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/passw0rd/phe-go"
+	"github.com/VirgilSecurity/virgil-phe-go"
 
 	"github.com/pkg/errors"
 )

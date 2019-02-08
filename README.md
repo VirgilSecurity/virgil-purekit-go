@@ -37,12 +37,12 @@ The passw0rd Go SDK is provided as a package named `passw0rd`. The package is di
 ### Install SDK Package
 Install passw0rd SDK library with the following code:
 ```bash
-go get -u github.com/passw0rd/sdk-go
+go get -u github.com/VirgilSecurity/virgil-passw0rd-go
 ```
 Passw0rd Go SDK uses Dep to do manage its dependencies:
 Please install [dep](https://golang.github.io/dep/docs/installation.html) and run the following commands:
 ```bash
-cd $(go env GOPATH)/src/github.com/passw0rd/sdk-go
+cd $(go env GOPATH)/src/github.com/VirgilSecurity/virgil-passw0rd-go
 dep ensure
 ```
 
@@ -52,7 +52,7 @@ Here is an example of how to specify your credentials SDK class instance:
 ```go
 // here set your passw0rd credentials
 import (
-    "github.com/passw0rd/sdk-go"
+    "github.com/VirgilSecurity/virgil-passw0rd-go"
 )
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
@@ -120,8 +120,8 @@ package main
 import (
     "encoding/base64"
     "fmt"
-    "github.com/passw0rd/sdk-go"
-    "github.com/passw0rd/phe-go"
+    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-phe-go"
 )
 
 // create a new encrypted password record using user password or its hash
@@ -153,8 +153,8 @@ package main
 
 import (
     "fmt"
-    "github.com/passw0rd/phe-go"
-    "github.com/passw0rd/sdk-go"
+    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-phe-go"
 )
 
 
@@ -193,7 +193,7 @@ package main
 
 import (
     "fmt"
-    "github.com/passw0rd/phe-go"
+    "github.com/VirgilSecurity/virgil-phe-go"
 )
 
 func main() {
@@ -257,7 +257,7 @@ Move to passw0rd SDK configuration file and specify your `UPDATE_TOKEN`:
 ```go
 // here set your passw0rd credentials
 import (
-    "github.com/passw0rd/sdk-go"
+    "github.com/VirgilSecurity/virgil-passw0rd-go"
 )
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
@@ -282,7 +282,7 @@ package main
 
 import (
     "crypto/subtle"
-    "github.com/passw0rd/sdk-go"
+    "github.com/VirgilSecurity/virgil-passw0rd-go"
 )
 
 func main(){
@@ -332,7 +332,7 @@ passw0rd application update-keys <service_public_key> <app_secret_key> <update_t
 ```go
 // here set your passw0rd credentials
 import (
-    "github.com/passw0rd/sdk-go"
+    "github.com/VirgilSecurity/virgil-passw0rd-go"
 )
 
 func InitPassw0rd() (*passw0rd.Protocol, error){
