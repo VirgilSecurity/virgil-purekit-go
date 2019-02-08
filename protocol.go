@@ -38,10 +38,18 @@ package passw0rd
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/passw0rd/phe-go"
 	"github.com/pkg/errors"
+)
+
+const (
+	passw0rdTokenPrefix = "PT."
+	virgilTokenPrefix   = "PV."
+	passw0rdApiURL      = "https://api.passw0rd.io"
+	virgilApiURL        = "https://api.virgilsecurity.com"
 )
 
 // Protocol implements passw0rd client-server protocol
@@ -147,6 +155,7 @@ func (p *Protocol) getClient() *APIClient {
 		if p.APIClient == nil {
 			p.APIClient = &APIClient{
 				AppToken: p.AppToken,
+				URL:      p.GetURL(),
 			}
 		}
 	})
@@ -172,4 +181,14 @@ func (p *Protocol) getToken(version uint32) []byte {
 
 func (p *Protocol) getCurrentPHE() *phe.Client {
 	return p.PHEClients[p.CurrentVersion]
+}
+
+func (p *Protocol) GetURL() string {
+	if strings.HasPrefix(p.AppToken, virgilTokenPrefix) {
+		return virgilApiURL
+	}
+	if strings.HasPrefix(p.AppToken, passw0rdTokenPrefix) {
+		return passw0rdApiURL
+	}
+	return ""
 }
