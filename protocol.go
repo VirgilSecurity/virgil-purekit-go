@@ -47,7 +47,7 @@ import (
 
 const (
 	passw0rdTokenPrefix = "PT."
-	virgilTokenPrefix   = "PV."
+	virgilTokenPrefix   = "AT."
 	passw0rdApiURL      = "https://api.passw0rd.io"
 	virgilApiURL        = "https://api.virgilsecurity.com"
 )
