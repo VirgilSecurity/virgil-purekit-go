@@ -99,9 +99,6 @@ func (vc *VirgilHTTPClient) Send(token string, method string, urlPath string, pa
 		return nil, errors.Wrap(err, "VirgilHTTPClient.Send: send request")
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, errors.New("not found")
-	}
 	if resp.StatusCode == http.StatusOK {
 		if respObj != nil {
 
