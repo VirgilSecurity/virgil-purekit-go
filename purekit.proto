@@ -1,5 +1,5 @@
 syntax = "proto3";
-package passw0rd;
+package purekit;
 
 message DatabaseRecord {
   uint32 version = 1;

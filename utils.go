@@ -34,7 +34,7 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package passw0rd
+package purekit
 
 import (
 	"fmt"
@@ -47,9 +47,9 @@ import (
 )
 
 const (
-	// Version represents passw0rd SDK version
-	Version = "v1.0.1"
-	header  = "passw0rd;go;%s;%s"
+	// Version represents pureKit SDK version
+	Version = "v2"
+	header  = "purekit;go;%s;%s"
 )
 
 //MarshalRecord serializes enrolment record to protobuf

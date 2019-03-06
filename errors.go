@@ -34,7 +34,7 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package passw0rd
+package purekit
 
 import "github.com/pkg/errors"
 
