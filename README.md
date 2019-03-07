@@ -225,15 +225,12 @@ Also, use this flow in case your database has been COMPROMISED!
 
 There is how it works:
 
-**Step 1.** Get your `UPDATE_TOKEN` using [PureKit CLI](https://github.com/VirgilSecurity/virgil-cli/releases)
+**Step 1.** Get your `UPDATE_TOKEN` using [Virgil CLI](https://github.com/VirgilSecurity/virgil-cli/)
 
-Move to your Application panel and press “Show update token” button to get the `update_token`.
+Move to your Application panel and press "Show update token" button to get the `update_token`.
 
-./purekit login my@email.com
-purekit login my@email.com
-./purekit application rotate <app_token>
-purekit application rotate <app_token>
 **Step 2.** Initialize PureKit SDK with the `UPDATE_TOKEN`.
+
 Move to PureKit SDK configuration file and specify your `UPDATE_TOKEN`:
 
 ```go
@@ -242,7 +239,7 @@ import (
     "github.com/VirgilSecurity/virgil-purekit-go"
 )
 
-func InitPassw0rd() (*purekit.Protocol, error){
+func InitPureKit() (*purekit.Protocol, error){
     appToken := "AT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     appSecretKey := "SK.1.000jofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6Vdf00000QQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
@@ -257,7 +254,9 @@ func InitPassw0rd() (*purekit.Protocol, error){
 }
 ```
 
-**Step 3.** Start migration. Use the `NewRecordUpdater("UPDATE_TOKEN")` SDK function to create an instance of class that will update your old records to new ones (you don't need to ask your users to create a new password). The `UpdateRecord()` function requires user's `oldRecord` from your DB:
+**Step 3.** Start migration.
+
+Use the `NewRecordUpdater("UPDATE_TOKEN")` SDK function to create an instance of class that will update your old records to new ones (you don't need to ask your users to create a new password). The `UpdateRecord()` function requires user's `oldRecord` from your DB:
 
 ```go
 package main
@@ -303,10 +302,10 @@ Use Virgil CLI `update-keys` command and your `UPDATE_TOKEN` to update the `APP_
 
 ```bash
 // FreeBSD / Linux / Mac OS
-./purekit application update-keys <service_public_key> <app_secret_key> <update_token>
+./virgil purekit update-keys <service_public_key> <app_secret_key> <update_token>
 
 // Windows OS
-purekit application update-keys <service_public_key> <app_secret_key> <update_token>
+virgil purekit update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
 **Step 5.** Move to PureKit SDK configuration and replace your previous `APP_SECRET_KEY`,  `SERVICE_PUBLIC_KEY` with a new one (`APP_TOKEN` will be the same). Delete previous `APP_SECRET_KEY`, `SERVICE_PUBLIC_KEY` and `UPDATE_TOKEN`.
@@ -317,7 +316,7 @@ import (
     "github.com/VirgilSecurity/virgil-purekit-go"
 )
 
-func InitPassw0rd() (*purekit.Protocol, error){
+func InitPureKit() (*purekit.Protocol, error){
     appToken := "APP_TOKEN_HERE"
     appSecretKey := "NEW_APP_SECRET_KEY_HERE"
     servicePublicKey := "NEW_SERVICE_PUBLIC_KEY_HERE"
@@ -335,7 +334,7 @@ func InitPassw0rd() (*purekit.Protocol, error){
 
 
 ## Docs
-* [Passw0rd community][_passw0rd] home page
+* [Passw0rd community](https://passw0rd.io/) home page
 * [The PHE WhitePaper](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) - foundation principles of the protocol
 
 ## License
