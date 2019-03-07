@@ -7,7 +7,7 @@
 [Introduction](#introduction) | [Features](#features) | [Register Your Account](#register-your-account) | [Install and configure SDK](#install-and-configure-sdk) | [Prepare Your Database](#prepare-your-database) | [Usage Examples](#usage-examples) | [Docs](#docs) | [Support](#support)
 
 ## Introduction
-<a href="https://purekit.io/"><img width="260px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/pure_grey_logo.png" align="left" hspace="0" vspace="0"></a>[Virgil Security](https://virgilsecurity.com) introduces an implementation of the [Password-Hardened Encryption (PHE) protocol](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) – a new mechanism that secures users' sensitive data and lessens the security risks associated with weak passwords.
+<img src="https://cdn.virgilsecurity.com/assets/images/github/logos/pure_grey_logo.png" align="left" hspace="0" vspace="0"></a>[Virgil Security](https://virgilsecurity.com) introduces an implementation of the [Password-Hardened Encryption (PHE) protocol](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) – a new mechanism that secures users' sensitive data and lessens the security risks associated with weak passwords.
 
 Virgil PureKit allows developers to protect user passwords and sensitive data from offline/online attacks and makes stolen passwords useless if your database has been compromised. Neither Virgil nor attackers know anything about users' passwords.
 
@@ -123,7 +123,7 @@ import (
 
 // create a new encrypted password record using user password or its hash
 func EnrollAccount(password string, prot *purekit.Protocol) error{
-    
+
     record, key, err := prot.EnrollAccount(password)
     if err != nil {
         return err
@@ -225,9 +225,9 @@ Also, use this flow in case your database has been COMPROMISED!
 
 There is how it works:
 
-**Step 1.** Get your `UPDATE_TOKEN` using [Virgil CLI](https://github.com/VirgilSecurity/virgil-cli/)
+**Step 1.** Get your `UPDATE_TOKEN`
 
-Move to your Application panel and press "Show update token" button to get the `update_token`.
+Navigate to [Virgil Dashboard](https://dashboard.virgilsecurity.com/login), open your pure application panel and press "Show update token" button to get the `update_token`.
 
 **Step 2.** Initialize PureKit SDK with the `UPDATE_TOKEN`.
 
@@ -267,12 +267,12 @@ import (
 )
 
 func main(){
-	
+
 	updater, err := purekit.NewRecordUpdater("UPDATE_TOKEN")
 	if err != nil{
             //something went wrong
     }
-	
+
     //for each record
     //get old record from the database
     oldRecord := ...
