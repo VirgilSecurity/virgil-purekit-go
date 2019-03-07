@@ -20,9 +20,8 @@ Virgil PureKit allows developers to protect user passwords and sensitive data fr
 - Instant invalidation of stolen database
 - User data encryption with a personal key
 
-
 ## Register Your Account
-Before starting practicing with the SDK and usage examples be sure that:
+Before starting practicing with the SDK and usage examples make sure that:
 - you have a registered Virgil Account at [Virgil Dashboard](https://dashboard.virgilsecurity.com/)
 - you created PURE Application
 - and you got your PURE Application's credentials, such as: `App Secret Key`, `Service Public Key`, `App Token`
@@ -54,7 +53,7 @@ import (
 )
 
 func InitPureKit() (*purekit.Protocol, error){
-    appToken := "PT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
+    appToken := "AT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     appSecretKey := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
 
@@ -228,27 +227,12 @@ There is how it works:
 
 **Step 1.** Get your `UPDATE_TOKEN` using [PureKit CLI](https://github.com/VirgilSecurity/virgil-cli/releases)
 
-- be sure you're logged in your account. To log in the account use the following command (2FA is required):
+Move to your Application panel and press “Show update token” button to get the `update_token`.
 
-```bash
-// FreeBSD / Linux / Mac OS
 ./purekit login my@email.com
-
-// Windows OS
 purekit login my@email.com
-```
-
-- then, use the `rotate` command and your application token to get an `UPDATE_TOKEN`:
-
-```bash
-// FreeBSD / Linux / Mac OS
 ./purekit application rotate <app_token>
-
-// Windows OS
 purekit application rotate <app_token>
-```
-as a result, you get your `UPDATE_TOKEN`.
-
 **Step 2.** Initialize PureKit SDK with the `UPDATE_TOKEN`.
 Move to PureKit SDK configuration file and specify your `UPDATE_TOKEN`:
 
@@ -259,7 +243,7 @@ import (
 )
 
 func InitPassw0rd() (*purekit.Protocol, error){
-    appToken := "PT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
+    appToken := "AT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     appSecretKey := "SK.1.000jofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6Vdf00000QQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
     updateToken := "UT.2.00000000+0000000000000000000008UfxXDUU2FGkMvKhIgqjxA+hsAtf17K5j11Cnf07jB6uVEvxMJT0lMGv00000="
@@ -361,6 +345,6 @@ This library is released under the [3-clause BSD License](LICENSE.md).
 ## Support
 Our developer support team is here to help you. Find out more information on our [Help Center](https://help.virgilsecurity.com/).
 
-Also, get extra help from our support team: support@VirgilSecurity.com.
+You can find us on [Twitter](https://twitter.com/VirgilSecurity) or send us email support@VirgilSecurity.com.
 
-[_passw0rd]: https://passw0rd.io/
+Also, get extra help from our support team on [Slack](https://virgilsecurity.com/join-community).
