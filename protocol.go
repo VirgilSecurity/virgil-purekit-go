@@ -34,7 +34,7 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package passw0rd
+package purekit
 
 import (
 	"fmt"
@@ -52,7 +52,7 @@ const (
 	virgilApiURL        = "https://api.virgilsecurity.com"
 )
 
-// Protocol implements passw0rd client-server protocol
+// Protocol implements PureKit client-server protocol
 type Protocol struct {
 	AppToken       string
 	PHEClients     map[uint32]*phe.Client
@@ -108,7 +108,7 @@ func (p *Protocol) EnrollAccount(password string) (enrollmentRecord []byte, encr
 
 }
 
-//VerifyPassword verifies a password against enrollment record using passw0rd service
+//VerifyPassword verifies a password against enrollment record using PureKit service
 func (p *Protocol) VerifyPassword(password string, enrollmentRecord []byte) (key []byte, err error) {
 
 	version, record, err := UnmarshalRecord(enrollmentRecord)

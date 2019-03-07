@@ -1,4 +1,4 @@
-package passw0rd
+package purekit
 
 import (
 	"github.com/VirgilSecurity/virgil-phe-go"

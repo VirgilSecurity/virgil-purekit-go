@@ -1,15 +1,15 @@
-# Passw0rd SDK Go
+# Virgil PureKit Go SDK
 
-[![Build Status](https://travis-ci.com/VirgilSecurity/virgil-passw0rd-go.png?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-passw0rd-go)
+[![Build Status](https://travis-ci.com/VirgilSecurity/virgil-purekit-go.png?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-purekit-go)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
 
 [Introduction](#introduction) | [Features](#features) | [Register Your Account](#register-your-account) | [Install and configure SDK](#install-and-configure-sdk) | [Prepare Your Database](#prepare-your-database) | [Usage Examples](#usage-examples) | [Docs](#docs) | [Support](#support)
 
 ## Introduction
-<a href="https://passw0rd.io/"><img width="260px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/passw0rd.png" align="left" hspace="0" vspace="0"></a>[Virgil Security](https://virgilsecurity.com) introduces an implementation of the [Password-Hardened Encryption (PHE) protocol](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) that provides developers with a technology to protect users passwords from offline/online attacks and make stolen passwords useless even if your database has been compromised.
+<a href="https://purekit.io/"><img width="260px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/pure_grey_logo.png" align="left" hspace="0" vspace="0"></a>[Virgil Security](https://virgilsecurity.com) introduces an implementation of the [Password-Hardened Encryption (PHE) protocol](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) – a new mechanism that secures users' sensitive data and lessens the security risks associated with weak passwords.
 
-PHE is a new, more secure mechanism that protects user passwords and lessens the security risks associated with weak passwords. Neither Virgil nor attackers know anything about user's password.
+Virgil PureKit allows developers to protect user passwords and sensitive data from offline/online attacks and makes stolen passwords useless if your database has been compromised. Neither Virgil nor attackers know anything about users' passwords.
 
 **Authors of the PHE protocol**: Russell W. F. Lai, Christoph Egger, Manuel Reinert, Sherman S. M. Chow, Matteo Maffei and Dominique Schroder.
 
@@ -22,24 +22,24 @@ PHE is a new, more secure mechanism that protects user passwords and lessens the
 
 ## Register Your Account
 Before starting practicing with the SDK and usage examples make sure that:
-- you have a registered at [Virgil Dashboard](https://dashboard.virgilsecurity.com/)
-- you created an application for the Passw0rd use case
-- and you got your passw0rd application's credentials such as: `App Secret Key`, `Service Public Key`, `App Token`
+- you have a registered Virgil Account at [Virgil Dashboard](https://dashboard.virgilsecurity.com/)
+- you created PURE Application
+- and you got your PURE Application's credentials, such as: `App Secret Key`, `Service Public Key`, `App Token`
 
 
 ## Install and Configure SDK
-The passw0rd Go SDK is provided as a package named `passw0rd`. The package is distributed via GitHub. The package is available for Go 1.10 or newer.
+The PureKit Go SDK is provided as a package named `purekit`. The package is distributed via GitHub. The package is available for Go 1.10 or newer.
 
 
 ### Install SDK Package
-Install passw0rd SDK library with the following code:
+Install PureKit SDK library with the following code:
 ```bash
-go get -u github.com/VirgilSecurity/virgil-passw0rd-go
+go get -u github.com/VirgilSecurity/virgil-purekit-go
 ```
-Passw0rd Go SDK uses Dep to do manage its dependencies:
+PureKit uses Dep to do manage its dependencies:
 Please install [dep](https://golang.github.io/dep/docs/installation.html) and run the following commands:
 ```bash
-cd $(go env GOPATH)/src/github.com/VirgilSecurity/virgil-passw0rd-go
+cd $(go env GOPATH)/src/github.com/VirgilSecurity/virgil-purekit-go
 dep ensure
 ```
 
@@ -47,31 +47,31 @@ dep ensure
 ### Configure SDK
 Here is an example of how to specify your credentials SDK class instance:
 ```go
-// here set your passw0rd credentials
+// here set your purekit credentials
 import (
-    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-purekit-go"
 )
 
-func InitPassw0rd() (*passw0rd.Protocol, error){
+func InitPureKit() (*purekit.Protocol, error){
     appToken := "AT.OSoPhirdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     appSecretKey := "SK.1.xacDjofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6VdfvhZhPQQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
 
-    context, err := passw0rd.CreateContext(appToken, servicePublicKey, appSecretKey, "")
+    context, err := purekit.CreateContext(appToken, servicePublicKey, appSecretKey, "")
     if err != nil{
         return nil, err
     }
 
-    return passw0rd.NewProtocol(context)
+    return purekit.NewProtocol(context)
 }
 ```
 
 
 
 ## Prepare Your Database
-Passw0rd SDK allows you to easily perform all the necessary operations to create, verify and rotate user's `record`.
+PureKit SDK allows you to easily perform all the necessary operations to create, verify and rotate user's `record`.
 
-**Passw0rd record** - a user's password that is protected with our Passw0rd technology. Passw0rd `record` contains a version, client & server random salts and two values obtained during execution of the PHE protocol.
+**PureKit record** - a user's password that is protected with our PureKit technology. PureKit `record` contains a version, client & server random salts and two values obtained during execution of the PHE protocol.
 
 In order to create and work with user's `record` you have to set up your database with an additional column.
 
@@ -88,10 +88,10 @@ The column must have the following parameters:
 
 <tbody>
 <tr>
-	<td>passw0rd_record</td>
+	<td>purekit_record</td>
 	<td>bytearray</td>
 	<td>210</td>
-	<td> A unique record, namely a user's protected passw0rd.</td>
+	<td> A unique record, namely a user's protected purekit.</td>
 </tr>
 
 </tbody>
@@ -102,14 +102,14 @@ The column must have the following parameters:
 
 ### Enroll User Record
 
-Use this flow to create a new passw0rd's `record` in your DB for a user.
+Use this flow to create a new PureKit `record` in your DB for a user.
 
-> Remember, if you already have a database with user passwords, you don't have to wait until a user logs in into your system to implement Passw0rd technology. You can go through your database and enroll (create) a user's `record` at any time.
+> Remember, if you already have a database with user passwords, you don't have to wait until a user logs in into your system to implement PureKit technology. You can go through your database and enroll (create) a user's `record` at any time.
 
 So, in order to create a `record` for a new database or available one, go through the following operations:
-- Take a user's **password** (or its hash or whatever you use) and pass it into the `EnrollAccount` function in a SDK on your Server side.
-- Passw0rd SDK will send a request to Passw0rd Service to get enrollment.
-- Then, Passw0rd SDK will create a user's `record`. You need to store this unique user's `record` in your database in associated column.
+- Take a user's **password** (or its hash or whatever you use) and pass it into the `EnrollAccount` function of SDK on your Server side.
+- PureKit SDK will send a request to PHE Service to get enrollment.
+- Then, PureKit SDK will create a user's `record`. You need to store this unique user's `record` in your database in associated column.
 
 ```go
 package main
@@ -117,12 +117,12 @@ package main
 import (
     "encoding/base64"
     "fmt"
-    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-purekit-go"
     "github.com/VirgilSecurity/virgil-phe-go"
 )
 
 // create a new encrypted password record using user password or its hash
-func EnrollAccount(password string, prot *passw0rd.Protocol) error{
+func EnrollAccount(password string, prot *purekit.Protocol) error{
     
     record, key, err := prot.EnrollAccount(password)
     if err != nil {
@@ -138,28 +138,28 @@ func EnrollAccount(password string, prot *passw0rd.Protocol) error{
 }
 ```
 
-When you've created a passw0rd's `record` for all users in your DB, you can delete the unnecessary column where user passwords were previously stored.
+When you've created a PureKit `record` for all users in your DB, you can delete the unnecessary column where user passwords were previously stored.
 
 
 ### Verify User Record
 
-Use this flow when a user already has his or her own passw0rd's `record` in your database. This function allows you to verify user's password with the `record` from your DB every time when the user signs in. You have to pass his or her `record` from your DB into the `VerifyPassword` function:
+Use this flow when a user already has his or her own PureKit `record` in your database. This function allows you to verify user's password with the `record` from your DB every time when the user signs in. You have to pass his or her `record` from your DB into the `VerifyPassword` function:
 
 ```go
 package main
 
 import (
     "fmt"
-    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-purekit-go"
     "github.com/VirgilSecurity/virgil-phe-go"
 )
 
 
-func VerifyPassword(password string, record []byte, prot *passw0rd.Protocol) error{
+func VerifyPassword(password string, record []byte, prot *purekit.Protocol) error{
     key, err := prot.VerifyPassword(password, record)
     if err != nil {
 
-        if err == passw0rd.ErrInvalidPassword{
+        if err == purekit.ErrInvalidPassword{
             //invalid password
         }
         return err //some other error
@@ -179,7 +179,7 @@ Not only user's password is a sensitive data. In this flow we will help you to p
 PII is a data that could potentially identify a specific individual, and PII can be sensitive.
 Sensitive PII is information which, when disclosed, could result in harm to the individual whose privacy has been breached. Sensitive PII should therefore be encrypted in transit and when data is at rest. Such information includes biometric information, medical information, personally identifiable financial information (PIFI) and unique identifiers such as passport or Social Security numbers.
 
-Passw0rd service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from `EnrollAccount` or `VerifyPassword` functions. The `encryptionKey` will be the same for both functions.
+PureKit service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from `EnrollAccount` or `VerifyPassword` functions. The `encryptionKey` will be the same for both functions.
 
 In addition, this key is unique to a particular user and won't be changed even after rotating (updating) the user's `record`. The `encryptionKey` will be updated after user changes own password.
 
@@ -217,39 +217,43 @@ Virgil Security has Zero knowledge about a user's `encryptionKey`, because the k
 
 
 ## Rotate app keys and user record
-There can never be enough security, so you should rotate your sensitive data regularly (about once a week). Use this flow to get an `UPDATE_TOKEN` for updating user's passw0rd `RECORD` in your database and to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application.
+There can never be enough security, so you should rotate your sensitive data regularly (about once a week). Use this flow to get an `UPDATE_TOKEN` for updating user's PureKit `RECORD` in your database and to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application.
 
 Also, use this flow in case your database has been COMPROMISED!
 
-> This action doesn't require to create an additional table or to do any modification with available one. When a user needs to change his or her own password, use the EnrollAccount function to replace user's oldPassw0rd record value in your DB with a newRecord.
+> This action doesn't require to create an additional table or to do any modification with available one. When a user needs to change his or her own password, use the EnrollAccount function to replace user's oldRecord value in your DB with a newRecord.
 
 There is how it works:
 
-**Step 1.** Get your `UPDATE_TOKEN` using [Virgil Dashboard](https://dashboard.virgilsecurity.com)
+**Step 1.** Get your `UPDATE_TOKEN` using [PureKit CLI](https://github.com/VirgilSecurity/virgil-cli/releases)
 
 Move to your Application panel and press “Show update token” button to get the `update_token`.
 
-**Step 2.** Initialize passw0rd SDK with the `UPDATE_TOKEN`.
-Move to passw0rd SDK configuration file and specify your `UPDATE_TOKEN`:
+./purekit login my@email.com
+purekit login my@email.com
+./purekit application rotate <app_token>
+purekit application rotate <app_token>
+**Step 2.** Initialize PureKit SDK with the `UPDATE_TOKEN`.
+Move to PureKit SDK configuration file and specify your `UPDATE_TOKEN`:
 
 ```go
-// here set your passw0rd credentials
+// here set your purekit credentials
 import (
-    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-purekit-go"
 )
 
-func InitPassw0rd() (*passw0rd.Protocol, error){
+func InitPassw0rd() (*purekit.Protocol, error){
     appToken := "AT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
     appSecretKey := "SK.1.000jofLr2JOu2Vf1+MbEzpdtEP1kUefA0PUJw2UyI0="
     servicePublicKey := "PK.1.BEn/hnuyKV0inZL+kaRUZNvwQ/jkhDQdALrw6Vdf00000QQHWyYO+fRlJYZweUz1FGH3WxcZBjA0tL4wn7kE0ls="
     updateToken := "UT.2.00000000+0000000000000000000008UfxXDUU2FGkMvKhIgqjxA+hsAtf17K5j11Cnf07jB6uVEvxMJT0lMGv00000="
 
-    context, err := passw0rd.CreateContext(appToken, servicePublicKey, appSecretKey, updateToken)
+    context, err := purekit.CreateContext(appToken, servicePublicKey, appSecretKey, updateToken)
     if err != nil{
         return nil, err
     }
 
-    return passw0rd.NewProtocol(context)
+    return purekit.NewProtocol(context)
 }
 ```
 
@@ -260,12 +264,12 @@ package main
 
 import (
     "crypto/subtle"
-    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-purekit-go"
 )
 
 func main(){
 	
-	updater, err := passw0rd.NewRecordUpdater("UPDATE_TOKEN")
+	updater, err := purekit.NewRecordUpdater("UPDATE_TOKEN")
 	if err != nil{
             //something went wrong
     }
@@ -291,7 +295,7 @@ func main(){
 
 So, run the `UpdateRecord()` function and save user's `newRecord` into your database.
 
-Since the SDK is able to work simultaneously with two versions of user's records (`newRecord` and `oldRecord`), this will not affect the backend or users. This means, if a user logs into your system when you do the migration, the passw0rd SDK will verify his password without any problems because Passw0rd Service can work with both user's records (`newRecord` and `oldRecord`).
+Since the SDK is able to work simultaneously with two versions of user's records (`newRecord` and `oldRecord`), this will not affect the backend or users. This means, if a user logs into your system when you do the migration, the PureKit SDK will verify his password without any problems because PHE Service can work with both user's records (`newRecord` and `oldRecord`).
 
 **Step 4.** Get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application
 
@@ -299,39 +303,39 @@ Use Virgil CLI `update-keys` command and your `UPDATE_TOKEN` to update the `APP_
 
 ```bash
 // FreeBSD / Linux / Mac OS
-./virgil passw0rd update-keys <service_public_key> <app_secret_key> <update_token>
+./purekit application update-keys <service_public_key> <app_secret_key> <update_token>
 
 // Windows OS
-virgil passw0rd update-keys <service_public_key> <app_secret_key> <update_token>
+purekit application update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
-**Step 5.** Move to passw0rd SDK configuration and replace your previous `APP_SECRET_KEY`,  `SERVICE_PUBLIC_KEY` with a new one (`APP_TOKEN` will be the same). Delete previous `APP_SECRET_KEY`, `SERVICE_PUBLIC_KEY` and `UPDATE_TOKEN`.
+**Step 5.** Move to PureKit SDK configuration and replace your previous `APP_SECRET_KEY`,  `SERVICE_PUBLIC_KEY` with a new one (`APP_TOKEN` will be the same). Delete previous `APP_SECRET_KEY`, `SERVICE_PUBLIC_KEY` and `UPDATE_TOKEN`.
 
 ```go
-// here set your passw0rd credentials
+// here set your purekit credentials
 import (
-    "github.com/VirgilSecurity/virgil-passw0rd-go"
+    "github.com/VirgilSecurity/virgil-purekit-go"
 )
 
-func InitPassw0rd() (*passw0rd.Protocol, error){
+func InitPassw0rd() (*purekit.Protocol, error){
     appToken := "APP_TOKEN_HERE"
     appSecretKey := "NEW_APP_SECRET_KEY_HERE"
     servicePublicKey := "NEW_SERVICE_PUBLIC_KEY_HERE"
 
 
-    context, err := passw0rd.CreateContext(appToken, servicePublicKey, appSecretKey, "")
+    context, err := purekit.CreateContext(appToken, servicePublicKey, appSecretKey, "")
     if err != nil{
         return nil, err
     }
 
-    return passw0rd.NewProtocol(context)
+    return purekit.NewProtocol(context)
 }
 ```
 
 
 
 ## Docs
-* [Virgil Dashboard](https://dashboard.virgilsecurity.com)
+* [Passw0rd community][_passw0rd] home page
 * [The PHE WhitePaper](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) - foundation principles of the protocol
 
 ## License
