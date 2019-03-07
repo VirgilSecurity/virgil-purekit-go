@@ -16,9 +16,9 @@ This technology can be used within any database or login system that uses a pass
 **Authors of the PHE protocol**: Russell W. F. Lai, Christoph Egger, Manuel Reinert, Sherman S. M. Chow, Matteo Maffei and Dominique Schroder.
 
 ## Features
-- Zero knowledge of user password
-- Protection from online attacks
-- Protection from offline attacks
+- Zero knowledge of users' passwords
+- Passwords & data protection from online attacks
+- Passwords & data protection from offline attacks
 - Instant invalidation of stolen database
 - User data encryption with a personal key
 
