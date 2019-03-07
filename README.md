@@ -229,18 +229,6 @@ There is how it works:
 
 Move to your Application panel and press "Show update token" button to get the `update_token`.
 
-Windows OS:
-```
-purekit login my@email.com
-purekit application rotate <app_token>
-```
-
-FreeBSD / Linux / Mac OS:
-```
-./purekit login my@email.com
-./purekit application rotate <app_token>
-```
-
 **Step 2.** Initialize PureKit SDK with the `UPDATE_TOKEN`.
 
 Move to PureKit SDK configuration file and specify your `UPDATE_TOKEN`:
@@ -266,7 +254,9 @@ func InitPureKit() (*purekit.Protocol, error){
 }
 ```
 
-**Step 3.** Start migration. Use the `NewRecordUpdater("UPDATE_TOKEN")` SDK function to create an instance of class that will update your old records to new ones (you don't need to ask your users to create a new password). The `UpdateRecord()` function requires user's `oldRecord` from your DB:
+**Step 3.** Start migration.
+
+Use the `NewRecordUpdater("UPDATE_TOKEN")` SDK function to create an instance of class that will update your old records to new ones (you don't need to ask your users to create a new password). The `UpdateRecord()` function requires user's `oldRecord` from your DB:
 
 ```go
 package main
@@ -312,10 +302,10 @@ Use Virgil CLI `update-keys` command and your `UPDATE_TOKEN` to update the `APP_
 
 ```bash
 // FreeBSD / Linux / Mac OS
-./purekit application update-keys <service_public_key> <app_secret_key> <update_token>
+./virgil purekit update-keys <service_public_key> <app_secret_key> <update_token>
 
 // Windows OS
-purekit application update-keys <service_public_key> <app_secret_key> <update_token>
+virgil purekit update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
 **Step 5.** Move to PureKit SDK configuration and replace your previous `APP_SECRET_KEY`,  `SERVICE_PUBLIC_KEY` with a new one (`APP_TOKEN` will be the same). Delete previous `APP_SECRET_KEY`, `SERVICE_PUBLIC_KEY` and `UPDATE_TOKEN`.
