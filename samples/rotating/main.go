@@ -131,9 +131,8 @@ func main() {
 	fmt.Printf("'%s's encrypted home address: %s\n", UserTable[0].username, encryptedAddressB64)
 	fmt.Printf("'%s's home address: %s\n", UserTable[0].username, string(decryptedAddress))
 
+	// Initialize Record Updater (replace updateToken with yours)
 	updateToken := "UT.2.CiDbvtC+i1NnGon/RDmus2FaNZnHfdE6nOgBCOkb2/gucBIgB0BfXesvdvsaplKVm0hFsjuuVxWr5esI2WxuGqwUKTE="
-
-	// Initialize Record Updater
 	updater, err := purekit.NewRecordUpdater(updateToken)
 
 	if err != nil {
