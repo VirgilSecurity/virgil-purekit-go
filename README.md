@@ -45,6 +45,8 @@ cd $(go env GOPATH)/src/github.com/VirgilSecurity/virgil-purekit-go
 dep ensure
 ```
 
+To uninstall Pure, see the [Recover Password Hashes](#recover-password-hashes) section.
+
 
 ### Configure SDK
 Here is an example of how to specify your credentials SDK class instance:
@@ -99,48 +101,159 @@ The column must have the following parameters:
 </tbody>
 </table>
 
+### Generate a recovery keypair
 
-## Usage Examples
+This step is __optional__. Use this step if you will need to move away from Pure without having to put your users through registering again.
 
-### Enroll User Record
+To be able to move away from Pure without having to put your users through registering again, you need to generate a recovery keypair (public and private key). The public key will be used to encrypt passwords hashes at the enrollment step. You will need to store the encrypted hashes in your database.
 
-Use this flow to create a new PureKit `record` in your DB for a user.
+To generate a recovery keypair, [install Virgil Crypto Library](https://developer.virgilsecurity.com/docs/how-to/virgil-crypto/install-virgil-crypto) and use the code snippet below. Store the public key in your database and save the private key securely on another external device.
 
-> Remember, if you already have a database with user passwords, you don't have to wait until a user logs in into your system to implement PureKit technology. You can go through your database and enroll (create) a user's `record` at any time.
-
-So, in order to create a `record` for a new database or available one, go through the following operations:
-- Take a user's **password** (or its hash or whatever you use) and pass it into the `EnrollAccount` function of SDK on your Server side.
-- PureKit SDK will send a request to PHE Service to get enrollment.
-- Then, PureKit SDK will create a user's `record`. You need to store this unique user's `record` in your database in associated column.
+> You won’t be able to restore your recovery private key, so it is crucial not to lose it.
 
 ```go
 package main
 
 import (
     "encoding/base64"
-    "fmt"
-    "github.com/VirgilSecurity/virgil-purekit-go"
-    "github.com/VirgilSecurity/virgil-phe-go"
+
+    "gopkg.in/virgilsecurity/virgil-crypto-go.v5"
 )
 
-// create a new encrypted password record using user password or its hash
-func EnrollAccount(password string, prot *purekit.Protocol) error{
+func main() {
+    crypto := virgil_crypto_go.NewVirgilCrypto()
+    kp, err := crypto.GenerateKeypair()
+    if err != nil {
+        panic(err)
+    }
+    pk, err := crypto.ExportPublicKey(kp.PublicKey())
+    if err != nil {
+        panic(err)
+    }
+    sk, err := crypto.ExportPrivateKey(kp.PrivateKey(), "")
+    if err != nil {
+        panic(err)
+    }
+    recoveryPrivateKey := base64.StdEncoding.EncodeToString(pk)
+    recoveryPublicKey := base64.StdEncoding.EncodeToString(sk)
+}
+```
 
-    record, key, err := prot.EnrollAccount(password)
+### Prepare your database for storing encrypted password hashes
+
+Now you need to prepare your database for the future passwords hashes recovery. Create a column in your users table or a separate table for storing encrypted user password hashes.
+
+<table class="params">
+<thead>
+		<tr>
+			<th>Parameters</th>
+			<th>Type</th>
+			<th>Size (bytes)</th>
+			<th>Description</th>
+		</tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>encrypted_password_hashes</td>
+	<td>bytearray</td>
+	<td>512</td>
+	<td>User password hash, encrypted with the recovery key.</td>
+</tr>
+</tbody>
+</table>
+
+Further, at the [enrollment step](#enroll-user-record) you'll need to encrypt users' password hashes with the generated recovery public key and save them to the `encrypted_password_hashes` column.
+
+
+## Usage Examples
+
+### Enroll User Record
+
+Use this flow to create a `PureRecord` in your DB for a user.
+
+> Remember, if you already have a database with user passwords, you don't have to wait until a user logs in into your system to implement PHE technology. You can go through your database and enroll (create) a user's Pure `Record` at any time.
+
+So, in order to create a Pure `Record` for a new database or available one, go through the following operations:
+- Take a user's **password** (or its hash or whatever you use) and pass it into the `EnrollAccount` function in a PureKit on your Server side.
+- PureKit will send a request to PureKit service to get enrollment.
+- Then, PureKit will create a user's Pure `Record`. You need to store this unique user's Pure `Record` in your database in associated column.
+- (optional) Encrypt your user password hashes with the recovery key generated in [Generate a recovery keypair](#generate-a-recovery-keypair) and save them to your database.
+
+```go
+// For the purpose of this guide, we'll use a simple struct and an array
+// to simulate a database. As you go, remove/replace with your actual database logic.
+type User struct {
+    username string
+
+    // If you have any password field for authentication, it can and should
+    // be deprecated after enrolling the user with PureKit
+    passwordHash string
+
+    // Data to be protected
+    ssn string
+
+    // Field needed for PureKit
+    record string
+
+    // Encrypted hash backup
+    encryptedPasswordHash []byte
+}
+
+var UserTable []User
+
+// Create a new encrypted password record using user password or its hash
+func EnrollAccount(userId int, password string, protocol *purekit.Protocol, crypto *virgil_crypto_go.ExternalCrypto, recoveryKey cryptoapi.PublicKey) error {
+    user := &UserTable[userId]
+
+    record, key, err := protocol.EnrollAccount(password)
     if err != nil {
         return err
     }
 
-    //save record to database
-    fmt.Printf("Database record:\n%s\n", base64.StdEncoding.EncodeToString(record))
-    //use encryptionKey for protecting user data
-    encrypted, err := phe.Encrypt(data, key)
-    ...
+    // Save the user's record to database
+    UserTable[userId].record = base64.StdEncoding.EncodeToString(record)
 
+    user.passwordHash = ""
+    // Use Recovery Public Key to encrypt user's password hash
+    user.encryptedPasswordHash, err = crypto.Encrypt([]byte(user.passwordHash), recoveryKey)
+    if err != nil {
+        return err
+    }
+
+    // Use EncryptionKey for protecting user data
+    // Save the result in a database
+    encryptedSsn, err := phe.Encrypt([]byte(user.ssn), key)
+    user.ssn = base64.StdEncoding.EncodeToString(encryptedSsn)
+
+    return nil
+}
+
+func main() {
+    // Previous step: initialize purekit
+
+    crypto := virgil_crypto_go.NewVirgilCrypto()
+    // Adding test users for the purpose of this guide.
+    UserTable = append(UserTable, User{username: "alice123", passwordHash: "80815C001", ssn: "036-24-9546"})
+    UserTable = append(UserTable, User{username: "bob321", passwordHash: "411C315N1C3", ssn: "041-53-8723"})
+
+    recoveryKey, err := crypto.ImportPublicKey([]byte(recoveryPublicKey))
+    if err != nil {
+        panic(err)
+    }
+    // Enroll all your user accounts
+    for k, _ := range UserTable {
+        fmt.Printf("Enrolling user '%s': ", UserTable[k].username)
+
+        // Ideally, you'll ask for users to create a new password, but
+        // for this guide, we'll use existing password in DB
+        EnrollAccount(k, UserTable[k].passwordHash, protocol, crypto, recoveryKey)
+        fmt.Printf("%+v\n\n", UserTable[k])
+    }
 }
 ```
 
-When you've created a PureKit `record` for all users in your DB, you can delete the unnecessary column where user passwords were previously stored.
+When you've created a Pure `record` for all users in your DB, you can delete the unnecessary column where user passwords were previously stored.
 
 
 ### Verify User Record
@@ -174,7 +287,7 @@ func VerifyPassword(password string, record []byte, prot *purekit.Protocol) erro
 }
 ```
 
-## Encrypt user data in your database
+### Encrypt user data in your database
 
 Not only user's password is a sensitive data. In this flow we will help you to protect any Personally identifiable information (PII) in your database.
 
@@ -218,7 +331,7 @@ Encryption is performed using AES256-GCM with key & nonce derived from the user'
 Virgil Security has Zero knowledge about a user's `encryptionKey`, because the key is calculated every time when you execute `EnrollAccount` or `VerifyPassword` functions at your server side.
 
 
-## Rotate app keys and user record
+### Rotate app keys and user record
 There can never be enough security, so you should rotate your sensitive data regularly (about once a week). Use this flow to get an `UPDATE_TOKEN` for updating user's PureKit `RECORD` in your database and to get a new `APP_SECRET_KEY` and `SERVICE_PUBLIC_KEY` of a specific application.
 
 Also, use this flow in case your database has been COMPROMISED!
@@ -333,6 +446,27 @@ func InitPureKit() (*purekit.Protocol, error){
 }
 ```
 
+### Recover password hashes
+
+Use this step if you're uninstalling Pure. 
+
+Password hashes recovery is carried out by decrypting the encrypted users password hashes in your database and replacing the Pure records with them.
+
+In order to recover the original password hashes, you need to prepare your recovery private key. If you don't have a recovery key, then you have to ask your users to go through the registration process again to restore their passwords.
+
+Use your recovery private key to get original password hashes:
+
+```go
+crypto := virgil_crypto_go.NewVirgilCrypto()
+
+privateKey, err := crypto.ImportPrivateKey([]byte(recoveryPrivateKey), "")
+if err != nil{
+    return err
+}
+decryptedPasswordHash, err := crypto.Decrypt(encryptedPasswordHash, privateKey)
+```
+
+Save the decrypted users password hashes into your database. After the recovery process is done, you can delete all the Pure data and the recovery keypair.
 
 
 ## Docs
