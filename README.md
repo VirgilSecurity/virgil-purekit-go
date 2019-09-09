@@ -383,9 +383,9 @@ import (
 
 func main(){
 
-     updater, err := purekit.NewRecordUpdater("UPDATE_TOKEN")
-     if err != nil{
-        //something went wrong
+    updater, err := purekit.NewRecordUpdater("UPDATE_TOKEN")
+    if err != nil{
+    //something went wrong
     }
 
     //for each record
