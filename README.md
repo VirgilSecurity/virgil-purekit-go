@@ -25,7 +25,6 @@ This technology can be used within any database or login system that uses a pass
 ## Content
 - [Introduction](#introduction)
 - [Features](#features)
-- [Get Started with PureKit](#get-started-with-purekit)
 - [Install and configure PureKit](#install-and-configure-purekit)
 - [Usage Examples](#usage-examples)
   - [Generate user's Pure Record](#generate-users-pure-record)
@@ -39,13 +38,11 @@ This technology can be used within any database or login system that uses a pass
 - [License](#license)
 - [Support](#support)
 
-## Get Started with PureKit
+## Install and configure PureKit
 
 This guide is the first step to adding password-hardened encryption to your database. Here you can learn how to set up PureKit at your backend to protect your users's passwords and data.
 
 For more details about password-hardened encryption (PHE), take a look at our overview [here](https://developer.virgilsecurity.com/docs/purekit/fundamentals/password-hardened-encryption/).
-
-## Install and configure PureKit
 
 ### Install PureKit package
 
