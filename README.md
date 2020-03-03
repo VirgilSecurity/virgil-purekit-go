@@ -95,7 +95,7 @@ func main() {
 ```
 
 
-## Prepare your database
+#### Prepare your database
 
 A **Pure record** is a user password that is protected with our PureKit technology. A Pure Record contains the version, client & server random salts, and two values obtained during the execution of the PHE protocol.
 
@@ -107,7 +107,7 @@ The column must have the following parameters:
 |--- |--- |--- |--- |
 |record|bytearray|210|A unique Pure record, namely a user's protected password.|
 
-### Generate a recovery key pair (optional)
+#### Generate a recovery key pair (optional)
 
 To be able to move away from Pure without having to put your users through registering again, or just to be able to recover data that your users may lose, you need to make a backup of your database, generate a recovery key pair and encrypt your backup with the recovery public key. The public key will be used to encrypt the database at the enrollment step.
 
@@ -147,29 +147,9 @@ func main() {
     recoveryPublicKey := base64.StdEncoding.EncodeToString(sk)
 }
 ```
+## Usage Examples
 
-
-
-To get the original data back using the recovery private key, go through the [recovery guide](/docs/purekit/additional-guides/uninstall/).
-
-## Next step
-
-Now that you have PureKit installed and configured, you are ready to move on to encrypting users' passwords:
-
-<CardLink title="Password Encryption" href="/docs/purekit/password-encryption/" />
-
-# Password Encryption
-
-This guide shows how to encrypt (harden) user's password and authenticate users with Virgil PHE Service.
-
-Learn more about how Password-Hardened Encryption works [here](/docs/purekit/fundamentals/password-hardened-encryption/).
-
-## Prerequisites
-
-- [PureKit installed and configured on backend](/docs/purekit/get-started/#install-purekit-package)
-- [Database ready for storing Pure Records](/docs/purekit/get-started/#prepare-your-database)
-
-## Generate user's Pure Record
+### Generate user's Pure Record
 
 To create a Pure `record` for a database:
 - Take the user's **password** (or hash) and pass it into the `EnrollAccount` function.
@@ -261,7 +241,7 @@ func main() {
 
 **Note!** If you have a database with user passwords, you don't have to wait until they log in. You can go through your database and enroll (create) a user's Pure Record at any time.
 
-## Verify user's password
+### Verify user's password
 
 After a user has their Pure Record, you can authenticate the user by verifying their password using the `VerifyPassword` function:
 
@@ -301,7 +281,7 @@ func main() {
 }
 ```
 
-## Change user's password
+### Change user's password
 
 Use this flow when a user wants to change their password.
 
@@ -311,46 +291,19 @@ If you use PureKit not only for hardening passwords, but also for encrypting use
 
 </Warning>
 
-If you're using PureKit only for encrypting passwords, then you have to [simply create a new Pure Record](/docs/purekit/password-encryption/#register-users-pure-record) using the new password for the user, and replace the old Pure Record with the new one.
+If you're using PureKit only for encrypting passwords, then you have to simply create a new Pure Record using the new password for the user, and replace the old Pure Record with the new one.
 
 
-## Next step
 
-Start encrypting user's data with PureKit:
+### Data encryption & decryption
 
-<CardLink title="Encrypt & Decrypt Data" href="/docs/purekit/data-encryption/" />
-
-# Data Encryption
-
-This guide shows how to encrypt and decrypt data with PureKit.
-
-Not only user passwords are sensitive data. In this flow we will help you protect any **Personally identifiable information** (PII) in your database.
-
-PII is data that could potentially identify a specific individual, and PII is sensitive. Sensitive PII is information, when disclosed, could result in harm to the individual whose privacy has been breached. Sensitive PII should therefore be encrypted in transit and when data is at rest. Such information includes biometric information, medical information, personally identifiable financial information (PIFI), and unique identifiers such as passport or Social Security numbers.
-
-## How encryption works with PHE
-
-The PHE service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from the `enrollAccount` or `verifyPassword` functions (see the [Verify User's Password](/docs/purekit/password-encryption/#verify-users-password) section). The `encryptionKey` will be the same for both functions.
+The PHE service allows you to protect user's PII (personal data) with a user's `encryptionKey` that is obtained from the `enrollAccount` or `verifyPassword` functions. The `encryptionKey` will be the same for both functions.
 
 In addition, this key is unique to a particular user and won't be changed even after rotating (updating) a user's Pure Record. The `encryptionKey` will be updated after a user changes their own password.
 
-<Info>
+> Virgil Security has zero knowledge about a user's `encryptionKey`, because the key is calculated every time you execute the `enrollAccount` or `verifyPassword` functions on your server side.
 
-Virgil Security has zero knowledge about a user's `encryptionKey`, because the key is calculated every time you execute the `enrollAccount` or `verifyPassword` functions on your server side.
-
-</Info>
-
-<Info>
-
-Encryption is performed using AES256-GCM with key & nonce derived from the user's encryptionKey using HKDF and the random 256-bit salt.
-
-</Info>
-
-## Prerequisites
-
-- [Pure Record generation](/docs/purekit/password-encryption/)
-
-## Data encryption & decryption
+> Encryption is performed using AES256-GCM with key & nonce derived from the user's encryptionKey using HKDF and the random 256-bit salt.
 
 Here is an example of data encryption/decryption with an `encryptionKey`:
 
@@ -381,13 +334,13 @@ func main() {
 }
 ```
 
-## Re-encrypt data when password is changed
+### Re-encrypt data when password is changed
 
 Use this flow when a user wants to change their password and maintain access to their data.
 
 When Pure Record for the user is created for the very first time, generate a new key (let's call it `User Key`) and store it in your database.
 
-### Prepare database
+#### Prepare database
 
 Create a new column in your database for storing `User Keys`.
 
@@ -395,32 +348,32 @@ Create a new column in your database for storing `User Keys`.
 |--- |--- |--- |--- |
 |Ecnrypted User Key|bytearray|210|A unique key for user's data encryption.|
 
-### Obtain Pure Record key
+#### Obtain Pure Record key
 
 When the Pure Record is created for the very first time, you need to obtain the `encryptionKey` from the `enrollAccount` function (see the [Generate User's Pure Record](/docs/purekit/password-encryption/#generate-users-pure-record) section).
 
-### Generate User Key
+#### Generate User Key
 
 To generate a `User Key`, [install Virgil Crypto Library](https://github.com/VirgilSecurity/virgil-crypto) and use the code snippet below. Store the public key in your database and save the private key securely on another external device.
 
 
-### Encrypt and store User Key
+#### Encrypt and store User Key
 
 Encrypt the `User Key` with the `encryptionKey` and save the `Encrypted User Key` at your database.
 
-### Encrypt data with User Key
+#### Encrypt data with User Key
 
 Whenever the user needs to encrypt their data, decrypt the `Encrypted User Key` with the `encryptionKey` and use the decrypted `User Key` instead of the `encryptionKey` for encrypting user's data.
 
-### Change user's password
+#### Change user's password
 
-To change the password, user enters their old password to authenticate at backend, and the new password. Use their new password to [create a new Pure Record](/docs/purekit/password-encryption/#generate-users-pure-record) for the user.
+To change the password, user enters their old password to authenticate at backend, and the new password. Use their new password to create a new Pure Record for the user.
 
 During the password change, decrypt the `Encrypted User Key` with the old `encryptionKey` and encrypt the `User Key` with the new `encryptionKey` you get from `enrollAccount` using the new password. This will allow the user to access their data without re-encrypting all of it.
 
 After that, you can delete the old Pure Record from your database and save the new one instead.
 
-# Rotate Keys and Records
+### Rotate Keys and Records
 
 This guide shows how to rotate PureKit-related keys and update Pure Records. There can never be enough security, so you should rotate your sensitive data regularly (about once a week).
 
@@ -428,15 +381,15 @@ This guide shows how to rotate PureKit-related keys and update Pure Records. The
 
 Use this workflow to get an `update_token` for updating user's Pure Record in your database and to get a new `app_secret_key` and `service_public_key` for your application.
 
-**Note!** When a user just needs to change their password, use the `EnrollAccount` function (see the [Password Encryption](/docs/purekit/password-encryption/) step) to replace the user's old `record` value in your DB with a new `record`.
+**Note!** When a user just needs to change their password, use the `EnrollAccount` function (see the [Password Encryption](#password-encryption) step) to replace the user's old `record` value in your DB with a new `record`.
 
 Learn more about Pure Records and keys rotation as a part of Post-Compromise Security in [this guide](/docs/purekit/fundamentals/post-compromise-security/).
 
-## Get your update token
+#### Get your update token
 
 Navigate to your Application panel at Virgil Dashboard and, after pressing "BEGIN ROTATION PROCESS" press “SHOW UPDATE TOKEN” button to get the `update_token`.
 
-## Initialize PureKit with the update token
+#### Initialize PureKit with the update token
 
 Move to PureKit configuration file and specify your `update_token`:
 
@@ -457,7 +410,7 @@ func InitPureKit() (purekit.Protocol, error){
 }
 ```
 
-## Start migration
+#### Start migration
 
 - Run the `update` method of the `RecordUpdater` class to create a new user `record`
 - Save user's new `record` into your database.
@@ -488,12 +441,12 @@ func main(){
 }
 ```
 
-**Note!** You don't need to ask your users for a new password.
+> **Note!** You don't need to ask your users for a new password.
 
-**Note!** The SDK is able to work with two versions of a user's `record` (old and new). This means, if a user logs into your system when you do the migration, the PureKit SDK will verify their password without any problems.
+> **Note!** The SDK is able to work with two versions of a user's `record` (old and new). This means, if a user logs into your system when you do the migration, the PureKit SDK will verify their password without any problems.
 
 
-## Download CLI
+#### Download CLI
 
 After you updated your database records, it's required to update (rotate) your application credentials. For security reasons, you need to use the [Virgil CLI utility](https://github.com/VirgilSecurity/virgil-cli).
 
@@ -504,7 +457,7 @@ After you updated your database records, it's required to update (rotate) your a
 - [Windows OS](https://github.com/VirgilSecurity/virgil-cli/releases)
 
 
-## Rotate app secret key
+#### Rotate app secret key
 
 Use Virgil CLI `update-keys` command and your `update_token` to update the `app_secret_key` and `service_public_key`:
 
@@ -512,7 +465,7 @@ Use Virgil CLI `update-keys` command and your `update_token` to update the `app_
 virgil pure update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
-## Configure PureKit SDK with new credentials
+#### Configure PureKit SDK with new credentials
 
 Move to PureKit SDK configuration and replace your previous `app_secret_key`, `service_public_key` with a new one (same for the `app_token`). Delete `update_token` and previous `app_secret_key`, `service_public_key`.
 
@@ -537,21 +490,18 @@ func InitPureKit() (purekit.Protocol, error){
 }
 ```
 
-# Uninstall PureKit
+### Uninstall PureKit
 
 Use this workflow to move away from Pure without having to put your users through registering again. This can be carried out by decrypting the encrypted database backup (users password hashes included) and replacing the encrypted data with it.
 
-## Prepare your recovery key
+#### Prepare your recovery key
 
 In order to recover the original password hashes, you need to prepare your recovery private key.
 
-<Warning>
+> If you don't have a recovery key, then you have to ask your users to go through the registration process again to restore their passwords.
 
-If you don't have a recovery key, then you have to ask your users to go through the registration process again to restore their passwords.
 
-</Warning>
-
-## Decrypt encrypted password hashes
+#### Decrypt encrypted password hashes
 
 Now use your recovery private key to get original password hashes:
 
