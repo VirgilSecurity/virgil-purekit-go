@@ -1,18 +1,3 @@
-import InstallPureKitSnippet from "snippets/purekit/install"
-import ConfigurePureKitSnippet from "snippets/purekit/configure"
-import GenerateRecoverySnippet from "snippets/purekit/generate-recovery"
-
-import EnrollSnippet from "snippets/purekit/enroll"
-import VerifyRecordSnippet from "snippets/purekit/verify"
-
-import PurekitEncryptDecryptSnippet from "snippets/purekit/encrypt"
-
-import UpdateInitializeSnippet from "snippets/purekit/rotate-records/initialize"
-import UpdateMigrationSnippet from "snippets/purekit/rotate-records/migrate"
-import UpdateReplaceSnippet from "snippets/purekit/rotate-records/replace"
-
-import DecryptHashes from "snippets/purekit/decrypt-hashes"
-
 
 # Virgil PureKit Go SDK
 
