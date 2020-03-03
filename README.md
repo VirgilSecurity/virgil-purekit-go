@@ -174,7 +174,7 @@ To create a Pure `record` for a database:
 The enrollment snippet below also provides an example on how to protect user personal data with `encryptionKey` and encrypt user password hashes with `recoveryPublicKey`.
 
 
-> Warning! If you need to update your user's Pure Records, for instance, if your database is COMPROMISED, take the immediate steps according to [this guide](/docs/purekit/additional-guides/rotate-keys-records/).
+> Warning! If you need to update your user's Pure Records, for instance, if your database is COMPROMISED, take the immediate steps according to [this guide](#rotate-keys-and-records).
 
 
 
@@ -298,11 +298,7 @@ func main() {
 
 Use this flow when a user wants to change their password.
 
-<Warning>
-
-If you use PureKit not only for hardening passwords, but also for encrypting user's data, you'll have to re-encrypt user's data with the new key so that the user doesn't lose access to it. Navigate to [this guide](/docs/purekit/data-encryption/#re-encrypt-data-when-password-is-changed) and follow the instructions there.
-
-</Warning>
+> Warning! If you use PureKit not only for hardening passwords, but also for encrypting user's data, you'll have to re-encrypt user's data with the new key so that the user doesn't lose access to it. Navigate to [this guide](#re-encrypt-data-when-password-is-changed) and follow the instructions there.
 
 If you're using PureKit only for encrypting passwords, then you have to simply create a new Pure Record using the new password for the user, and replace the old Pure Record with the new one.
 
@@ -363,7 +359,7 @@ Create a new column in your database for storing `User Keys`.
 
 #### Obtain Pure Record key
 
-When the Pure Record is created for the very first time, you need to obtain the `encryptionKey` from the `enrollAccount` function (see the [Generate User's Pure Record](/docs/purekit/password-encryption/#generate-users-pure-record) section).
+When the Pure Record is created for the very first time, you need to obtain the `encryptionKey` from the `enrollAccount` function (see the [Generate User's Pure Record](#generate-users-pure-record) section).
 
 #### Generate User Key
 
@@ -394,9 +390,9 @@ This guide shows how to rotate PureKit-related keys and update Pure Records. The
 
 Use this workflow to get an `update_token` for updating user's Pure Record in your database and to get a new `app_secret_key` and `service_public_key` for your application.
 
-**Note!** When a user just needs to change their password, use the `EnrollAccount` function (see the [Password Encryption](#password-encryption) step) to replace the user's old `record` value in your DB with a new `record`.
+**Note!** When a user just needs to change their password, use the `EnrollAccount` function (see the *Password Encryption* step) to replace the user's old `record` value in your DB with a new `record`.
 
-Learn more about Pure Records and keys rotation as a part of Post-Compromise Security in [this guide](/docs/purekit/fundamentals/post-compromise-security/).
+Learn more about Pure Records and keys rotation as a part of Post-Compromise Security in [this guide](https://developer.virgilsecurity.com/docs/purekit/fundamentals/post-compromise-security/).
 
 #### Get your update token
 
