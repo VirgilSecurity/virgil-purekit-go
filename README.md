@@ -31,7 +31,7 @@ This technology can be used within any database or login system that uses a pass
   - [Generate user's Pure Record](#generate-users-pure-record)
   - [Verify user's password](#verify-users-password)
   - [Change user's password](#change-users-password)
-  - [Data encryption & decryption](#data-encryption-&-decryption)
+  - [Data encryption & decryption](#data-encryption--decryption)
   - [Re-encrypt data when password is changed](#re-encrypt-data-when-password-is-changed)
   - [Rotate Keys and Records](#rotate-keys-and-records)
   - [Uninstall PureKit](#uninstall-purekit)
