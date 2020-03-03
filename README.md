@@ -26,7 +26,7 @@ This technology can be used within any database or login system that uses a pass
 - [Introduction](#introduction)
 - [Features](#features)
 - [Get Started with PureKit](#get-started-with-purekit)
-- [Install and configure PureKit](#install-and-configure-purkit)
+- [Install and configure PureKit](#install-and-configure-purekit)
 - [Usage Examples](#usage-examples)
   - [Generate user's Pure Record](#generate-user's-pure-record)
   - [Verify user's password](#verify-user's-password)
