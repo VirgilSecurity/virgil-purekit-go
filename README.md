@@ -4,8 +4,7 @@
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-purekit-go.png?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-purekit-go)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-
-<a href="https://developer.virgilsecurity.com/docs%22%3E<img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/purekit/PureKit.png" align="left" hspace="1" vspace="3"></a>
+<a href="https://developer.virgilsecurity.com"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/purekit/PureKit.png" align="left" hspace="1" vspace="3"></a>
 
 ## Introduction
 [Virgil Security](https://virgilsecurity.com) introduces an implementation of the [Password-Hardened Encryption (PHE) protocol](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) – a powerful and revolutionary cryptographic technology that provides stronger and more modern security, that secures users' data and lessens the security risks associated with weak passwords.
