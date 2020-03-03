@@ -22,6 +22,23 @@ This technology can be used within any database or login system that uses a pass
 - Instant invalidation of stolen database
 - User data encryption with a personal key
 
+## Content
+- [Introduction](#introduction)
+- [Features](#features)
+- [Get Started with PureKit](#get-started-with-purekit)
+- [Install and configure PureKit](#install-and-configure-purkit)
+- [Usage Examples](#usage-examples)
+  - [Generate user's Pure Record](#generate-user's-pure-record)
+  - [Verify user's password](#verify-user's-password)
+  - [Change user's password](#change-user's-password)
+  - [Data encryption & decryption](#data-encryption-&-decryption)
+  - [Re-encrypt data when password is changed](#re-encrypt-data-when-password-is-changed)
+  - [Rotate Keys and Records](#rotate-keys-and-records)
+  - [Uninstall PureKit](#uninstall-purekit)
+- [Docs](#docs)
+- [License](#license)
+- [Support](#support)
+
 ## Get Started with PureKit
 
 This guide is the first step to adding password-hardened encryption to your database. Here you can learn how to set up PureKit at your backend to protect your users's passwords and data.
