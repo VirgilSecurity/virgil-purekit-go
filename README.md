@@ -171,15 +171,12 @@ To create a Pure `record` for a database:
 - Take the user's **password** (or hash) and pass it into the `EnrollAccount` function.
 - Store this user's unique `record` in your database.
 
-The enrollment snippet below also provides an example on how to [protect user personal data](/docs/purekit/data-encryption/) with `encryptionKey` and encrypt user password hashes with `recoveryPublicKey`.
+The enrollment snippet below also provides an example on how to protect user personal data with `encryptionKey` and encrypt user password hashes with `recoveryPublicKey`.
 
-<Warning>
 
-Keep in mind that this step will replace password hashes with Pure Records, so it's important to go through all steps in [Prerequisites](#prerequisites).
+> Warning! If you need to update your user's Pure Records, for instance, if your database is COMPROMISED, take the immediate steps according to [this guide](/docs/purekit/additional-guides/rotate-keys-records/).
 
-If you need to update your user's Pure Records, for instance, if your database is COMPROMISED, take the immediate steps according to [this guide](/docs/purekit/additional-guides/rotate-keys-records/).
 
-</Warning>
 
 ```bash
 
