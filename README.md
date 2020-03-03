@@ -51,8 +51,6 @@ For more details about password-hardened encryption (PHE), take a look at our ov
 
 Use your package manager to download PureKit into your backend.
 
-
-
 Install PureKit Golang SDK library with the following code:
 
 ```bash
@@ -73,7 +71,7 @@ dep ensure
 ### Configure PureKit
 Navigate to [Virgil Dashboard](https://dashboard.virgilsecurity.com), create a new Pure application and configure PureKit framework with your application credentials:
 
-```bash
+```go
 
 package main
 
@@ -129,13 +127,9 @@ To be able to move away from Pure without having to put your users through regis
 
 To generate a recovery keypair, [install Virgil Crypto Library](https://github.com/VirgilSecurity/virgil-crypto) and use the code snippet below. Store the public key in your database and save the private key securely on another external device.
 
-<Warning>
+> **Warning!** You won’t be able to restore your recovery private key, so it is crucial not to lose it.
 
-You won’t be able to restore your recovery private key, so it is crucial not to lose it.
-
-</Warning>
-
-```bash
+```go
 
 package main
 
@@ -173,12 +167,10 @@ To create a Pure `record` for a database:
 
 The enrollment snippet below also provides an example on how to protect user personal data with `encryptionKey` and encrypt user password hashes with `recoveryPublicKey`.
 
-
 > Warning! If you need to update your user's Pure Records, for instance, if your database is COMPROMISED, take the immediate steps according to [this guide](#rotate-keys-and-records).
 
 
-
-```bash
+```go
 
 // For the purpose of this guide, we'll use a simple struct and an array
 // to simulate a database. As you go, remove/replace with your actual database logic.
@@ -252,13 +244,13 @@ func main() {
 }
 ```
 
-**Note!** If you have a database with user passwords, you don't have to wait until they log in. You can go through your database and enroll (create) a user's Pure Record at any time.
+> **Note!** If you have a database with user passwords, you don't have to wait until they log in. You can go through your database and enroll (create) a user's Pure Record at any time.
 
 ### Verify user's password
 
 After a user has their Pure Record, you can authenticate the user by verifying their password using the `VerifyPassword` function:
 
-```bash
+```go
 
 // Verifies password and returns encryption key for a user
 func VerifyPassword(userId int, password string, protocol purekit.Protocol) ([]byte, error) {
@@ -298,10 +290,9 @@ func main() {
 
 Use this flow when a user wants to change their password.
 
-> Warning! If you use PureKit not only for hardening passwords, but also for encrypting user's data, you'll have to re-encrypt user's data with the new key so that the user doesn't lose access to it. Navigate to [this guide](#re-encrypt-data-when-password-is-changed) and follow the instructions there.
+> **Warning!** If you use PureKit not only for hardening passwords, but also for encrypting user's data, you'll have to re-encrypt user's data with the new key so that the user doesn't lose access to it. Navigate to [this guide](#re-encrypt-data-when-password-is-changed) and follow the instructions there.
 
 If you're using PureKit only for encrypting passwords, then you have to simply create a new Pure Record using the new password for the user, and replace the old Pure Record with the new one.
-
 
 
 ### Data encryption & decryption
@@ -316,7 +307,7 @@ In addition, this key is unique to a particular user and won't be changed even a
 
 Here is an example of data encryption/decryption with an `encryptionKey`:
 
-```bash
+```go
 
 func main() {
     // Previous step: verify password
@@ -390,7 +381,7 @@ This guide shows how to rotate PureKit-related keys and update Pure Records. The
 
 Use this workflow to get an `update_token` for updating user's Pure Record in your database and to get a new `app_secret_key` and `service_public_key` for your application.
 
-**Note!** When a user just needs to change their password, use the `EnrollAccount` function (see the *Password Encryption* step) to replace the user's old `record` value in your DB with a new `record`.
+> **Note!** When a user just needs to change their password, use the `EnrollAccount` function (see the *Password Encryption* step) to replace the user's old `record` value in your DB with a new `record`.
 
 Learn more about Pure Records and keys rotation as a part of Post-Compromise Security in [this guide](https://developer.virgilsecurity.com/docs/purekit/fundamentals/post-compromise-security/).
 
@@ -402,7 +393,7 @@ Navigate to your Application panel at Virgil Dashboard and, after pressing "BEGI
 
 Move to PureKit configuration file and specify your `update_token`:
 
-```bash
+```go
 
 func InitPureKit() (purekit.Protocol, error){
     appToken := "AT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
@@ -424,7 +415,7 @@ func InitPureKit() (purekit.Protocol, error){
 - Run the `update` method of the `RecordUpdater` class to create a new user `record`
 - Save user's new `record` into your database.
 
-```bash
+```go
 func main(){
     // Previous step: initialize PureKit SDK with Update Token
 
@@ -470,7 +461,7 @@ After you updated your database records, it's required to update (rotate) your a
 
 Use Virgil CLI `update-keys` command and your `update_token` to update the `app_secret_key` and `service_public_key`:
 
-```bash
+```go
 virgil pure update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
@@ -478,7 +469,7 @@ virgil pure update-keys <service_public_key> <app_secret_key> <update_token>
 
 Move to PureKit SDK configuration and replace your previous `app_secret_key`, `service_public_key` with a new one (same for the `app_token`). Delete `update_token` and previous `app_secret_key`, `service_public_key`.
 
-```bash
+```go
 
 // here set your purekit credentials
 import (
@@ -514,7 +505,7 @@ In order to recover the original password hashes, you need to prepare your recov
 
 Now use your recovery private key to get original password hashes:
 
-```bash
+```go
 
 crypto := virgil_crypto_go.NewVirgilCrypto()
 
