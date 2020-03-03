@@ -340,34 +340,21 @@ Use this flow when a user wants to change their password and maintain access to 
 
 When Pure Record for the user is created for the very first time, generate a new key (let's call it `User Key`) and store it in your database.
 
-#### Prepare database
-
-Create a new column in your database for storing `User Keys`.
+**1. Prepare database**. Create a new column in your database for storing `User Keys`.
 
 |Parameters|Type|Size (bytes)|Description|
 |--- |--- |--- |--- |
 |Ecnrypted User Key|bytearray|210|A unique key for user's data encryption.|
 
-#### Obtain Pure Record key
+**2. Obtain Pure Record key**. When the Pure Record is created for the very first time, you need to obtain the `encryptionKey` from the `enrollAccount` function (see the [Generate User's Pure Record](#generate-users-pure-record) section).
 
-When the Pure Record is created for the very first time, you need to obtain the `encryptionKey` from the `enrollAccount` function (see the [Generate User's Pure Record](#generate-users-pure-record) section).
+**3. Generate User key**. To generate a `User Key`, [install Virgil Crypto Library](https://github.com/VirgilSecurity/virgil-crypto) and use the code snippet below. Store the public key in your database and save the private key securely on another external device.
 
-#### Generate User Key
+**4. Encrypt and store User key**. Encrypt the `User Key` with the `encryptionKey` and save the `Encrypted User Key` at your database.
 
-To generate a `User Key`, [install Virgil Crypto Library](https://github.com/VirgilSecurity/virgil-crypto) and use the code snippet below. Store the public key in your database and save the private key securely on another external device.
+**5. Encrypt data with User key**. Whenever the user needs to encrypt their data, decrypt the `Encrypted User Key` with the `encryptionKey` and use the decrypted `User Key` instead of the `encryptionKey` for encrypting user's data.
 
-
-#### Encrypt and store User Key
-
-Encrypt the `User Key` with the `encryptionKey` and save the `Encrypted User Key` at your database.
-
-#### Encrypt data with User Key
-
-Whenever the user needs to encrypt their data, decrypt the `Encrypted User Key` with the `encryptionKey` and use the decrypted `User Key` instead of the `encryptionKey` for encrypting user's data.
-
-#### Change user's password
-
-To change the password, user enters their old password to authenticate at backend, and the new password. Use their new password to create a new Pure Record for the user.
+**6. Change user's password**. To change the password, user enters their old password to authenticate at backend, and the new password. Use their new password to create a new Pure Record for the user.
 
 During the password change, decrypt the `Encrypted User Key` with the old `encryptionKey` and encrypt the `User Key` with the new `encryptionKey` you get from `enrollAccount` using the new password. This will allow the user to access their data without re-encrypting all of it.
 
@@ -385,13 +372,9 @@ Use this workflow to get an `update_token` for updating user's Pure Record in yo
 
 Learn more about Pure Records and keys rotation as a part of Post-Compromise Security in [this guide](https://developer.virgilsecurity.com/docs/purekit/fundamentals/post-compromise-security/).
 
-#### Get your update token
+**1. Get your update token**. Navigate to your Application panel at [Virgil Dashboard](https://dashboard.virgilsecurity.com/) and, after pressing "BEGIN ROTATION PROCESS" press “SHOW UPDATE TOKEN” button to get the `update_token`.
 
-Navigate to your Application panel at Virgil Dashboard and, after pressing "BEGIN ROTATION PROCESS" press “SHOW UPDATE TOKEN” button to get the `update_token`.
-
-#### Initialize PureKit with the update token
-
-Move to PureKit configuration file and specify your `update_token`:
+**2. Initialize PureKit with the update token**. Move to PureKit configuration file and specify your `update_token`:
 
 ```go
 
@@ -410,10 +393,7 @@ func InitPureKit() (purekit.Protocol, error){
 }
 ```
 
-#### Start migration
-
-- Run the `update` method of the `RecordUpdater` class to create a new user `record`
-- Save user's new `record` into your database.
+**3. Start migration**. Run the `update` method of the `RecordUpdater` class to create a new user `record` and save user's new `record` into your database.
 
 ```go
 func main(){
@@ -445,29 +425,15 @@ func main(){
 
 > **Note!** The SDK is able to work with two versions of a user's `record` (old and new). This means, if a user logs into your system when you do the migration, the PureKit SDK will verify their password without any problems.
 
+**4. Download Virgil CLI**. After you updated your database records, it's required to update (rotate) your application credentials. For security reasons, you need to use the [Virgil CLI utility](https://github.com/VirgilSecurity/virgil-cli).
 
-#### Download CLI
-
-After you updated your database records, it's required to update (rotate) your application credentials. For security reasons, you need to use the [Virgil CLI utility](https://github.com/VirgilSecurity/virgil-cli).
-
-**Download** the preferred CLI package with one of the links below:
-- [Mac OS](https://github.com/VirgilSecurity/virgil-cli/releases)
-- [FreeBSD](https://github.com/VirgilSecurity/virgil-cli/releases)
-- [Linux OS](https://github.com/VirgilSecurity/virgil-cli/releases)
-- [Windows OS](https://github.com/VirgilSecurity/virgil-cli/releases)
-
-
-#### Rotate app secret key
-
-Use Virgil CLI `update-keys` command and your `update_token` to update the `app_secret_key` and `service_public_key`:
+**5. Rotate App Secret key**. Use Virgil CLI `update-keys` command and your `update_token` to update the `app_secret_key` and `service_public_key`:
 
 ```go
 virgil pure update-keys <service_public_key> <app_secret_key> <update_token>
 ```
 
-#### Configure PureKit SDK with new credentials
-
-Move to PureKit SDK configuration and replace your previous `app_secret_key`, `service_public_key` with a new one (same for the `app_token`). Delete `update_token` and previous `app_secret_key`, `service_public_key`.
+**6. Configure PureKit SDK with new credentials**. Move to PureKit SDK configuration and replace your previous `app_secret_key`, `service_public_key` with a new one (same for the `app_token`). Delete `update_token` and previous `app_secret_key`, `service_public_key`.
 
 ```go
 
@@ -494,16 +460,11 @@ func InitPureKit() (purekit.Protocol, error){
 
 Use this workflow to move away from Pure without having to put your users through registering again. This can be carried out by decrypting the encrypted database backup (users password hashes included) and replacing the encrypted data with it.
 
-#### Prepare your recovery key
-
-In order to recover the original password hashes, you need to prepare your recovery private key.
+**1. Prepare your recovery key**. In order to recover the original password hashes, you need to prepare your recovery private key.
 
 > If you don't have a recovery key, then you have to ask your users to go through the registration process again to restore their passwords.
 
-
-#### Decrypt encrypted password hashes
-
-Now use your recovery private key to get original password hashes:
+**2. Decrypt encrypted password hashes**. Now use your recovery private key to get original password hashes:
 
 ```go
 
@@ -521,6 +482,7 @@ After the recovery process is done, you can delete all the Pure data and the rec
 
 
 ## Docs
+
 * [Virgil Dashboard](https://dashboard.virgilsecurity.com/)
 * [The PHE WhitePaper](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) - foundation principles of the protocol
 * [Go Samples](/samples) - explore our Go PURE samples to easily run the SDK
@@ -531,6 +493,7 @@ After the recovery process is done, you can delete all the Pure data and the rec
 This library is released under the [3-clause BSD License](https://github.com/VirgilSecurity/virgil-purekit-go/blob/v2/LICENSE).
 
 ## Support
+
 Our developer support team is here to help you. Find out more information on our [Help Center](https://help.virgilsecurity.com/).
 
 You can find us on [Twitter](https://twitter.com/VirgilSecurity) or send us email support@VirgilSecurity.com.
