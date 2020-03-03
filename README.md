@@ -35,8 +35,6 @@ For more details about password-hardened encryption (PHE), take a look at our ov
 
 Use your package manager to download PureKit into your backend.
 
-<LanguageTabs>
-<LanguageTab language="GO">
 
 
 Install PureKit Golang SDK library with the following code:
@@ -54,15 +52,12 @@ Please install Dep and run the following commands:
 cd $(go env GOPATH)/src/github.com/VirgilSecurity/virgil-purekit-go
 dep ensure
 ```
-</LanguageTab>
-</LanguageTabs>
 
 
 ### Configure PureKit
 Navigate to [Virgil Dashboard](https://dashboard.virgilsecurity.com), create a new Pure application and configure PureKit framework with your application credentials:
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 package main
 
@@ -97,9 +92,8 @@ func main() {
     // 'protocol' will be used in the next step
     // Next step: Enroll user accounts
 }
+```
 
-</LanguageTab>
-</LanguageTabs>
 
 ## Prepare your database
 
@@ -125,8 +119,7 @@ You won’t be able to restore your recovery private key, so it is crucial not t
 
 </Warning>
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 package main
 
@@ -153,9 +146,9 @@ func main() {
     recoveryPrivateKey := base64.StdEncoding.EncodeToString(pk)
     recoveryPublicKey := base64.StdEncoding.EncodeToString(sk)
 }
+```
 
-</LanguageTab>
-</LanguageTabs>
+
 
 To get the original data back using the recovery private key, go through the [recovery guide](/docs/purekit/additional-guides/uninstall/).
 
@@ -192,8 +185,7 @@ If you need to update your user's Pure Records, for instance, if your database i
 
 </Warning>
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 // For the purpose of this guide, we'll use a simple struct and an array
 // to simulate a database. As you go, remove/replace with your actual database logic.
@@ -265,9 +257,7 @@ func main() {
         fmt.Printf("%+v\n\n", UserTable[k])
     }
 }
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 **Note!** If you have a database with user passwords, you don't have to wait until they log in. You can go through your database and enroll (create) a user's Pure Record at any time.
 
@@ -275,8 +265,7 @@ func main() {
 
 After a user has their Pure Record, you can authenticate the user by verifying their password using the `VerifyPassword` function:
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 // Verifies password and returns encryption key for a user
 func VerifyPassword(userId int, password string, protocol purekit.Protocol) ([]byte, error) {
@@ -310,9 +299,7 @@ func main() {
 
     fmt.Printf("'%s's SSN: %s\n", user.username, decryptedSsn)
 }
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 ## Change user's password
 
@@ -367,8 +354,7 @@ Encryption is performed using AES256-GCM with key & nonce derived from the user'
 
 Here is an example of data encryption/decryption with an `encryptionKey`:
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 func main() {
     // Previous step: verify password
@@ -393,9 +379,7 @@ func main() {
     fmt.Printf("'%s's encrypted home address: %s\n", UserTable[0].username, encryptedAddressB64)
     fmt.Printf("'%s's home address: %s\n", UserTable[0].username, string(decryptedAddress))
 }
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 ## Re-encrypt data when password is changed
 
@@ -419,7 +403,6 @@ When the Pure Record is created for the very first time, you need to obtain the 
 
 To generate a `User Key`, [install Virgil Crypto Library](https://github.com/VirgilSecurity/virgil-crypto) and use the code snippet below. Store the public key in your database and save the private key securely on another external device.
 
-<GenerateKeySnippet/>
 
 ### Encrypt and store User Key
 
@@ -457,8 +440,7 @@ Navigate to your Application panel at Virgil Dashboard and, after pressing "BEGI
 
 Move to PureKit configuration file and specify your `update_token`:
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 func InitPureKit() (purekit.Protocol, error){
     appToken := "AT.0000000irdopvijQlFPKdlSydN9BUrn5oEuDwf3Hqps"
@@ -473,19 +455,14 @@ func InitPureKit() (purekit.Protocol, error){
 
     return purekit.NewProtocol(context)
 }
-
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 ## Start migration
 
 - Run the `update` method of the `RecordUpdater` class to create a new user `record`
 - Save user's new `record` into your database.
 
-<LanguageTabs>
-<LanguageTab language="GO">
-
+```bash
 func main(){
     // Previous step: initialize PureKit SDK with Update Token
 
@@ -509,9 +486,7 @@ func main(){
         UserTable[k].record = base64.StdEncoding.EncodeToString(newRecord)
     }
 }
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 **Note!** You don't need to ask your users for a new password.
 
@@ -541,8 +516,7 @@ virgil pure update-keys <service_public_key> <app_secret_key> <update_token>
 
 Move to PureKit SDK configuration and replace your previous `app_secret_key`, `service_public_key` with a new one (same for the `app_token`). Delete `update_token` and previous `app_secret_key`, `service_public_key`.
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 // here set your purekit credentials
 import (
@@ -561,9 +535,7 @@ func InitPureKit() (purekit.Protocol, error){
 
     return purekit.NewProtocol(context)
 }
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 # Uninstall PureKit
 
@@ -583,8 +555,7 @@ If you don't have a recovery key, then you have to ask your users to go through 
 
 Now use your recovery private key to get original password hashes:
 
-<LanguageTabs>
-<LanguageTab language="GO">
+```bash
 
 crypto := virgil_crypto_go.NewVirgilCrypto()
 
@@ -593,9 +564,7 @@ if err != nil{
     return err
 }
 decryptedPasswordHash, err := crypto.Decrypt(encryptedPasswordHash, privateKey)
-
-</LanguageTab>
-</LanguageTabs>
+```
 
 Save the decrypted users password hashes into your database.
 After the recovery process is done, you can delete all the Pure data and the recovery keypair.
