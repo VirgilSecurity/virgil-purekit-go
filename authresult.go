@@ -36,7 +36,9 @@
 
 package purekit
 
-import "github.com/pkg/errors"
+import "github.com/VirgilSecurity/virgil-purekit-go/models"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+type AuthResult struct {
+	Grant          *models.PureGrant
+	EncryptedGrant string
+}

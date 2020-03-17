@@ -36,7 +36,8 @@
 
 package purekit
 
-import "github.com/pkg/errors"
+import "github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+type NonRotatableSecrets struct {
+	Vksp, Oksp crypto.PrivateKey
+}

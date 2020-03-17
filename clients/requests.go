@@ -34,9 +34,33 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package clients
 
-import "github.com/pkg/errors"
+const (
+	// PHE
+	ENROLL          = "/enroll"
+	VERIFY_PASSWORD = "/verify-password"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+	// PURE
+	INSERT_USER             = "/insert-user"
+	UPDATE_USER             = "/update-user"
+	GET_USER                = "/get-user"
+	GET_USERS               = "/get-users"
+	DELETE_USER             = "/delete-user"
+	INSERT_CELL_KEY         = "/insert-cell-key"
+	UPDATE_CELL_KEY         = "/update-cell-key"
+	GET_CELL_KEY            = "/get-cell-key"
+	DELETE_CELL_KEY         = "/delete-cell-key"
+	INSERT_ROLES            = "/insert-roles"
+	GET_ROLES               = "/get-roles"
+	INSERT_ROLE_ASSIGNMENTS = "/insert-role-assignments"
+	GET_ROLE_ASSIGNMENTS    = "/get-role-assignments"
+	GET_ROLE_ASSIGNMENT     = "/get-role-assignment"
+	DELETE_ROLE_ASSIGNMENTS = "/delete-role-assignments"
+	INSERT_GRANT_KEY        = "/insert-grant-key"
+	GET_GRANT_KEY           = "/get-grant-key"
+	DELETE_GRANT_KEY        = "/delete-grant-key"
+
+	// KMS
+	DECRYPT_REQUEST = "/decrypt"
+)

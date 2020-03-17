@@ -36,7 +36,7 @@
 
 package purekit
 
-import "github.com/pkg/errors"
-
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+type RotationResults struct {
+	UsersRotated  uint64
+	GrantsRotated uint64
+}

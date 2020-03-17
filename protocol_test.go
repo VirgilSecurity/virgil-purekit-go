@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 Virgil Security Inc.
+ * Copyright (C) 2015-2020 Virgil Security Inc.
  *
  * All rights reserved.
  *
@@ -37,95 +37,194 @@
 package purekit
 
 import (
+	"bytes"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 )
 
-func TestProtocol_EnrollAccount(t *testing.T) {
+func BuildContext() (*Context, error) {
+	c := &crypto.Crypto{}
+	nmsData, _ := c.Random(32)
+	nms := fmt.Sprintf("NM.%s", base64.StdEncoding.EncodeToString(nmsData))
 
-	req := require.New(t)
+	buppk, _ := c.GenerateKeypair()
+	bubin, _ := c.ExportPublicKey(buppk.PublicKey())
+	bup := fmt.Sprintf("BU.%s", base64.StdEncoding.EncodeToString(bubin))
 
-	appToken := os.Getenv("APP_TOKEN")
+	at := os.Getenv("TEST_APP_TOKEN")
+	sk1 := os.Getenv("TEST_SK1")
+	pk1 := os.Getenv("TEST_PK1")
+	pheUrl := os.Getenv("TEST_PHE_URL")
+	pureUrl := os.Getenv("TEST_PURE_URL")
+	kmsUrl := os.Getenv("TEST_KMS_URL")
 
-	if appToken == "" {
-		t.Skip("no parameters")
-	}
+	ctx, err := CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
 
-	skStr := os.Getenv("SECRET_KEY")
+	/*ctx.Storage.(*storage.VirgilCloudPureStorage).Client.HTTPClient =
+	client.NewClient(ctx.Storage.(*storage.VirgilCloudPureStorage).Client.URL,
+		client.VirgilProduct("PureKit", "v3.0.0"),
+		client.DefaultCodec(&clients.ProtobufCodec{}),
+		client.ErrorHandler(clients.DefaultErrorHandler),
+		client.HTTPClient(&http.Client{
+			Transport: &DebugClient{Transport: http.DefaultTransport},
+		}))*/
+	return ctx, err
+}
 
-	pubStr := os.Getenv("PUBLIC_KEY")
-	token1 := os.Getenv("UPDATE_TOKEN")
-	address := os.Getenv("SERVER_ADDRESS")
+func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
+	userName := randomString()
+	password := randomString()
 
-	context, err := CreateContext(appToken, pubStr, skStr, "")
-	req.NoError(err)
+	ctx, err := BuildContext()
+	require.NoError(t, err)
 
-	proto, err := NewProtocol(context)
-	req.NoError(err)
+	p, err := NewPure(ctx)
+	require.NoError(t, err)
 
-	if address != "" {
-		proto.APIClient = &APIClient{
-			AppToken: appToken,
-			URL:      address,
+	err = p.RegisterUser(userName, password)
+	require.NoError(t, err)
+
+	res, err := p.AuthenticateUser(userName, password, &SessionParameters{
+		SessionID: randomString(),
+		TTL:       DEFAULT_GRANT_TTL,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestPure_EncryptDecrypt(t *testing.T) {
+	userName := randomString()
+	password := randomString()
+	dataId := randomString()
+	plaintext := randomString()
+
+	ctx, err := BuildContext()
+	require.NoError(t, err)
+
+	p, err := NewPure(ctx)
+	require.NoError(t, err)
+
+	err = p.RegisterUser(userName, password)
+	require.NoError(t, err)
+
+	res, err := p.AuthenticateUser(userName, password, &SessionParameters{
+		SessionID: randomString(),
+		TTL:       DEFAULT_GRANT_TTL,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	ciphertext, err := p.encrypt(userName, dataId, nil, nil, nil, []byte(plaintext))
+	require.NoError(t, err)
+	decrypted, err := p.Decrypt(res.Grant, userName, dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, string(decrypted))
+}
+
+func TestPure_EncryptDecrypt_share(t *testing.T) {
+	userId1 := randomString()
+	password1 := randomString()
+	userId2 := randomString()
+	password2 := randomString()
+	dataId := randomString()
+	plaintext := randomString()
+
+	ctx, err := BuildContext()
+	require.NoError(t, err)
+
+	p, err := NewPure(ctx)
+	require.NoError(t, err)
+
+	err = p.RegisterUser(userId1, password1)
+	require.NoError(t, err)
+
+	res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
+		SessionID: randomString(),
+		TTL:       DEFAULT_GRANT_TTL,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res1)
+
+	err = p.RegisterUser(userId2, password2)
+	require.NoError(t, err)
+
+	res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
+		SessionID: randomString(),
+		TTL:       DEFAULT_GRANT_TTL,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res2)
+
+	ciphertext, err := p.encrypt(userId1, dataId, nil, nil, nil, []byte(plaintext))
+	require.NoError(t, err)
+
+	err = p.Share(res1.Grant, dataId, []string{userId2}, nil)
+	require.NoError(t, err)
+	decrypted1, err := p.Decrypt(res1.Grant, "", dataId, ciphertext)
+	require.NoError(t, err)
+	decrypted2, err := p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, string(decrypted1))
+	require.Equal(t, plaintext, string(decrypted2))
+}
+
+func randomString() string {
+	b := make([]byte, 8)
+	rand.Read(b)
+	t := base64.StdEncoding.EncodeToString(b)
+	return t
+}
+
+type DebugClient struct {
+	Transport http.RoundTripper
+}
+
+func (c *DebugClient) RoundTrip(req *http.Request) (*http.Response, error) {
+	var (
+		body []byte
+		err  error
+	)
+	fmt.Println("Request:", req.Method, req.URL.String())
+
+	if len(req.Header) > 0 {
+		fmt.Println("Header:")
+		for key := range req.Header {
+			fmt.Println("\t", key, ":", req.Header.Get(key))
 		}
+		fmt.Println("")
 	}
-
-	const pwd = "p@ssw0Rd"
-	//enroll version 1
-	rec, key, err := proto.EnrollAccount(pwd)
-	req.NoError(err)
-	req.True(len(rec) > 0)
-	req.True(len(key) == 32)
-	//verify version 1
-	key1, err := proto.VerifyPassword(pwd, rec)
-	req.NoError(err)
-	req.Equal(key, key1)
-
-	key2, err := proto.VerifyPassword("p@ss", rec)
-	req.EqualError(err, ErrInvalidPassword.Error())
-	req.Nil(key2)
-
-	//rotate happened
-	context, err = CreateContext(appToken, pubStr, skStr, token1)
-	req.NoError(err)
-	proto, err = NewProtocol(context)
-	req.NoError(err)
-
-	if address != "" {
-		proto.APIClient = &APIClient{
-			AppToken: appToken,
-			URL:      address,
+	if req.Body != nil {
+		body, err = ioutil.ReadAll(req.Body)
+		req.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("cannot read body request: %v", err)
 		}
+		fmt.Println("Body:", base64.StdEncoding.EncodeToString(body))
+		req.Body = ioutil.NopCloser(bytes.NewReader(body))
 	}
 
-	time.Sleep(2 * time.Second)
-	//verify version 1 with token
-	key3, err := proto.VerifyPassword(pwd, rec)
-	req.NoError(err)
-	req.Equal(key, key3)
+	resp, err := c.Transport.RoundTrip(req)
+	if err != nil {
+		return resp, err
+	}
+	fmt.Println("Response:", resp.StatusCode)
+	body, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("cannot read body request: %v", err)
+	}
+	fmt.Println("Body:", base64.StdEncoding.EncodeToString(body))
+	resp.Body = ioutil.NopCloser(bytes.NewReader(body))
 
-	updater, err := NewRecordUpdater(token1)
-	req.NoError(err)
-	newRec, err := updater.UpdateRecord(rec)
-	req.NoError(err)
-	//verify version 2
-	key4, err := proto.VerifyPassword(pwd, newRec)
-	req.NoError(err)
-	req.Equal(key, key4)
-
-	//enroll version 2
-	rec, key, err = proto.EnrollAccount("passw0rd")
-	req.NoError(err)
-
-	version, _, err := UnmarshalRecord(rec)
-	req.NoError(err)
-	req.Equal(version, uint32(2))
-
-	//verify version 2
-	key2, err = proto.VerifyPassword("passw0rd", rec)
-	req.NoError(err)
-	req.Equal(key2, key)
+	fmt.Println("")
+	return resp, nil
 }

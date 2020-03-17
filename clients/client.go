@@ -34,9 +34,61 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package clients
 
-import "github.com/pkg/errors"
+import (
+	"net/http"
+	"sync"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+	"github.com/VirgilSecurity/virgil-purekit-go/protos"
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/errors"
+)
+
+type Client struct {
+	AppToken   string
+	URL        string
+	HTTPClient *client.Client
+	once       sync.Once
+}
+
+func (c *Client) getClient() *client.Client {
+	c.once.Do(func() {
+		if c.HTTPClient == nil {
+			c.HTTPClient = client.NewClient(c.URL,
+				client.VirgilProduct("PureKit", "v3.0.0"),
+				client.DefaultCodec(&ProtobufCodec{}),
+				client.ErrorHandler(DefaultErrorHandler),
+			)
+		}
+	})
+	return c.HTTPClient
+}
+
+func (c *Client) makeHeader(token string) http.Header {
+	return http.Header{
+		"AppToken": []string{token},
+	}
+}
+
+func DefaultErrorHandler(resp *client.Response) error {
+	if len(resp.Body) == 0 {
+		if resp.StatusCode == http.StatusNotFound {
+			return errors.ErrEntityNotFound
+		}
+		if resp.StatusCode/100 == 5 { // 5xx
+			return errors.ErrInternalServerError
+		}
+	}
+
+	apiErr := &protos.HttpError{}
+	if len(resp.Body) != 0 {
+		if err := resp.Unmarshal(apiErr); err != nil {
+			return &client.Error{
+				StatusCode: resp.StatusCode,
+				Message:    string(resp.Body),
+			}
+		}
+	}
+	return apiErr
+}

@@ -36,7 +36,32 @@
 
 package purekit
 
-import "github.com/pkg/errors"
+import (
+	"errors"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/foundation"
+)
+
+const NONROTATABLE_MASTER_SECRET_LENGTH = 32
+
+func GenerateNonRotatableSecrets(c *crypto.Crypto, masterSecret []byte) (*NonRotatableSecrets, error) {
+	if len(masterSecret) != NONROTATABLE_MASTER_SECRET_LENGTH {
+		return nil, errors.New("invalid master secret length")
+	}
+	rng := foundation.NewKeyMaterialRng()
+	rng.ResetKeyMaterial(masterSecret)
+
+	vksp, err := c.GenerateKeypairForTypeWithCustomRng(rng, crypto.FAST_EC_ED25519)
+	if err != nil {
+		return nil, err
+	}
+	oksp, err := c.GenerateKeypairForTypeWithCustomRng(rng, crypto.FAST_EC_ED25519)
+	if err != nil {
+		return nil, err
+	}
+	return &NonRotatableSecrets{
+		Vksp: vksp,
+		Oksp: oksp,
+	}, nil
+}

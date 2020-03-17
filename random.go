@@ -36,7 +36,19 @@
 
 package purekit
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/foundation"
+)
+
+var random foundation.Random
+
+func init() {
+	rnd := foundation.NewCtrDrbg()
+
+	if err := rnd.SetupDefaults(); err != nil {
+		panic(fmt.Errorf("virgil crypto cannot initialize random generator: %v", err))
+	}
+	random = rnd
+}

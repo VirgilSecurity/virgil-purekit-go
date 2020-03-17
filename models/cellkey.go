@@ -34,9 +34,12 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package models
 
-import "github.com/pkg/errors"
-
-// ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+type CellKey struct {
+	UserID           string
+	DataID           string
+	CPK              []byte
+	EncryptedCskCms  []byte
+	EncryptedCskBody []byte
+}
