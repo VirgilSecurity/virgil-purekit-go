@@ -506,6 +506,18 @@ func (p *Pure) ChangeUserPassword(userId, oldPassword, newPassword string) error
 	return p.changeUserPasswordInternal(user, privateKeyData, newPassword)
 }
 
+func (p *Pure) ChangeUserPasswordWithGrant(grant *models.PureGrant, newPassword string) error {
+	user, err := p.Storage.SelectUser(grant.UserID)
+	if err != nil {
+		return err
+	}
+	sk, err := p.PureCrypto.ExportPrivateKey(grant.UKP)
+	if err != nil {
+		return err
+	}
+	return p.changeUserPasswordInternal(user, sk, newPassword)
+}
+
 func (p *Pure) registerUserInternal(userId, password string) (*models.UserRecord, crypto.PrivateKey, []byte, error) {
 	passwordHash, err := p.PureCrypto.ComputePasswordHash(password)
 	if err != nil {

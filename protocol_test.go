@@ -51,12 +51,12 @@ import (
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 )
 
-func BuildContext() (*Context, error) {
+func BuildContext() (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err error) {
 	c := &crypto.Crypto{}
-	nmsData, _ := c.Random(32)
+	nmsData, _ = c.Random(32)
 	nms := fmt.Sprintf("NM.%s", base64.StdEncoding.EncodeToString(nmsData))
 
-	buppk, _ := c.GenerateKeypair()
+	buppk, _ = c.GenerateKeypair()
 	bubin, _ := c.ExportPublicKey(buppk.PublicKey())
 	bup := fmt.Sprintf("BU.%s", base64.StdEncoding.EncodeToString(bubin))
 
@@ -67,7 +67,7 @@ func BuildContext() (*Context, error) {
 	pureUrl := os.Getenv("TEST_PURE_URL")
 	kmsUrl := os.Getenv("TEST_KMS_URL")
 
-	ctx, err := CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
+	ctx, err = CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
 
 	/*ctx.Storage.(*storage.VirgilCloudPureStorage).Client.HTTPClient =
 	client.NewClient(ctx.Storage.(*storage.VirgilCloudPureStorage).Client.URL,
@@ -77,14 +77,14 @@ func BuildContext() (*Context, error) {
 		client.HTTPClient(&http.Client{
 			Transport: &DebugClient{Transport: http.DefaultTransport},
 		}))*/
-	return ctx, err
+	return
 }
 
 func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
 	userName := randomString()
 	password := randomString()
 
-	ctx, err := BuildContext()
+	ctx, _, _, err := BuildContext()
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -107,7 +107,7 @@ func TestPure_EncryptDecrypt(t *testing.T) {
 	dataId := randomString()
 	plaintext := randomString()
 
-	ctx, err := BuildContext()
+	ctx, _, _, err := BuildContext()
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -130,15 +130,16 @@ func TestPure_EncryptDecrypt(t *testing.T) {
 	require.Equal(t, plaintext, string(decrypted))
 }
 
-func TestPure_EncryptDecrypt_share(t *testing.T) {
+func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 	userId1 := randomString()
 	password1 := randomString()
 	userId2 := randomString()
 	password2 := randomString()
 	dataId := randomString()
 	plaintext := randomString()
+	password3 := randomString()
 
-	ctx, err := BuildContext()
+	ctx, buppk, _, err := BuildContext()
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -175,6 +176,35 @@ func TestPure_EncryptDecrypt_share(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, plaintext, string(decrypted1))
 	require.Equal(t, plaintext, string(decrypted2))
+
+	//test Unshare
+	err = p.Unshare(userId1, dataId, []string{userId2}, nil)
+	require.NoError(t, err)
+
+	decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+	require.Error(t, err)
+	require.Nil(t, decrypted2)
+
+	//test Admin
+	adminGrant, err := p.CreateUserGrantAsAdmin(userId1, buppk, DEFAULT_GRANT_TTL)
+	require.NoError(t, err)
+	require.NotNil(t, adminGrant)
+	decryptedAdmin, err := p.Decrypt(adminGrant, "", dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, string(decryptedAdmin))
+
+	err = p.ChangeUserPasswordWithGrant(adminGrant, password3)
+	require.NoError(t, err)
+
+	res3, err := p.AuthenticateUser(userId1, password3, &SessionParameters{
+		SessionID: randomString(),
+		TTL:       DEFAULT_GRANT_TTL,
+	})
+	require.NoError(t, err)
+
+	decrypted3, err := p.Decrypt(res3.Grant, "", dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, string(decrypted3))
 }
 
 func randomString() string {

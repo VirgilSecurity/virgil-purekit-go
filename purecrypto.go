@@ -186,6 +186,8 @@ func (p *PureCrypto) ExtractPublicKeysIdsFromCellKey(cms []byte) ([][]byte, erro
 		res = append(res, keyList.Item().RecipientId())
 		if keyList.HasNext() {
 			keyList = keyList.Next()
+		} else {
+			keyList = nil
 		}
 	}
 	return res, nil
