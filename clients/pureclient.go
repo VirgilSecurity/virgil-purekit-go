@@ -186,7 +186,7 @@ func (c *PureClient) DeleteCellKey(req *protos.UserIdAndDataIdRequest) (err erro
 func (c *PureClient) InsertRole(req *protos.Role) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: INSERT_ROLES,
+		Endpoint: INSERT_ROLE,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}

@@ -305,7 +305,7 @@ func (p *Pure) Decrypt(grant *models.PureGrant, ownerUserId, dataId string, ciph
 			return nil, err
 		}
 
-		roleAssignments, err := p.Storage.SelectRoleAssignments(userId)
+		roleAssignments, err := p.Storage.SelectRoleAssignments(grant.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -375,6 +375,72 @@ func (p *Pure) Unshare(ownerUserId, dataId string, otherUserIds []string, public
 	}
 	cellKey.EncryptedCskCms = encryptedCskCms
 	return p.Storage.UpdateCellKey(cellKey)
+}
+
+func (p *Pure) CreateRole(roleName string, userIds ...string) error {
+	roleKey, err := p.PureCrypto.GenerateRoleKey()
+	if err != nil {
+		return err
+	}
+	rpk, err := p.PureCrypto.ExportPublicKey(roleKey.PublicKey())
+	if err != nil {
+		return err
+	}
+	rsk, err := p.PureCrypto.ExportPrivateKey(roleKey)
+	if err != nil {
+		return err
+	}
+	role := &models.Role{
+		RoleName: roleName,
+		RPK:      rpk,
+	}
+	if err = p.Storage.InsertRole(role); err != nil {
+		return err
+	}
+
+	return p.AssignRole(roleName, roleKey.Identifier(), rsk, userIds...)
+}
+
+func (p *Pure) AssignRoleWithGrant(roleName string, grant *models.PureGrant, userIds ...string) error {
+	roleAssignment, err := p.Storage.SelectRoleAssignment(roleName, grant.UserID)
+	if err != nil {
+		return err
+	}
+	rskData, err := p.PureCrypto.DecryptRolePrivateKey(roleAssignment.EncryptedRsk, grant.UKP, p.Oskp.PublicKey())
+	if err != nil {
+		return err
+	}
+	return p.AssignRole(roleName, roleAssignment.PublicKeyID, rskData, userIds...)
+}
+
+func (p *Pure) UnassignRole(roleName string, userIds ...string) error {
+	return p.Storage.DeleteRoleAssignments(roleName, userIds...)
+}
+
+func (p *Pure) AssignRole(roleName string, publicKeyId []byte, rskData []byte, userIds ...string) error {
+	users, err := p.Storage.SelectUsers(userIds...)
+	if err != nil {
+		return err
+	}
+	roleAssignments := make([]*models.RoleAssignment, 0, len(userIds))
+	for _, u := range users {
+		upk, err := p.PureCrypto.ImportPublicKey(u.UPK)
+		if err != nil {
+			return err
+		}
+		encryptedRsk, err := p.PureCrypto.EncryptRolePrivateKey(rskData, upk, p.Oskp)
+		if err != nil {
+			return err
+		}
+		roleAssignment := &models.RoleAssignment{
+			RoleName:     roleName,
+			UserID:       u.UserID,
+			PublicKeyID:  publicKeyId,
+			EncryptedRsk: encryptedRsk,
+		}
+		roleAssignments = append(roleAssignments, roleAssignment)
+	}
+	return p.Storage.InsertRoleAssignments(roleAssignments...)
 }
 
 func (p *Pure) ShareToRoles(grant *models.PureGrant, dataId string, roleNames []string) error {
