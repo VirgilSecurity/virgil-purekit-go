@@ -35,7 +35,7 @@ syntax = "proto3";
 
 package protos;
 
-option go_package = "github.com/VirgilSecurity/virgil-purekit-go/protos";
+option go_package = ".;protos";
 
 message DatabaseRecord {
     uint32 version = 1;

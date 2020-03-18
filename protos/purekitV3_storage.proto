@@ -34,7 +34,7 @@
 syntax = "proto3";
 
 package protos;
-option go_package = "github.com/VirgilSecurity/virgil-purekit-go/protos";
+option go_package = ".;protos";
 message UserRecordSigned {
     uint32 version = 1;
     string user_id = 2;

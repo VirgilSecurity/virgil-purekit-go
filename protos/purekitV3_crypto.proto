@@ -32,7 +32,7 @@
  */
 
 syntax = "proto3";
-option go_package = "github.com/VirgilSecurity/virgil-purekit-go/protos";
+option go_package = ".;protos";
 package protos;
 
 message EnrollmentRecord {
