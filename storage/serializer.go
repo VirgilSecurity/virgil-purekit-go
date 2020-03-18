@@ -40,7 +40,7 @@ import (
 	"github.com/VirgilSecurity/virgil-purekit-go/models"
 	"github.com/VirgilSecurity/virgil-purekit-go/protos"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type ModelSerializer struct {

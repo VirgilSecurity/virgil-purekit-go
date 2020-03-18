@@ -1,3 +1,5 @@
+// +build tools
+
 /*
  * Copyright (C) 2015-2020 Virgil Security Inc.
  *
@@ -34,10 +36,8 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-// +build tools
-
 package purekit
 
 import (
-	_ "github.com/golang/protobuf/protoc-gen-go"
+	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 )

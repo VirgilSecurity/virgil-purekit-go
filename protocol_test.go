@@ -230,6 +230,8 @@ func TestPure_Roles(t *testing.T) {
 	require.NoError(t, err)
 	err = p.RegisterUser(userId3, password3)
 	require.NoError(t, err)
+
+	//create role for users 1 and 2
 	err = p.CreateRole(roleName, []string{userId1, userId2}...)
 	require.NoError(t, err)
 
@@ -248,6 +250,8 @@ func TestPure_Roles(t *testing.T) {
 		TTL:       DEFAULT_GRANT_TTL,
 	})
 	require.NoError(t, err)
+
+	//user1 encrypts to role
 	ciphertext, err := p.encrypt(userId1, dataId, nil, []string{roleName}, nil, []byte(plaintext))
 	require.NoError(t, err)
 
@@ -264,25 +268,32 @@ func TestPure_Roles(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, decrypted3)
 
+	//assign role to user3
 	err = p.AssignRoleWithGrant(roleName, res2.Grant, []string{userId3}...)
 	require.NoError(t, err)
+	//remove role from user1,2
 	err = p.UnassignRole(roleName, []string{userId1, userId2}...)
 	require.NoError(t, err)
 
+	//user1 should decrypt because he's owner
 	decrypted1, err = p.Decrypt(res1.Grant, "", dataId, ciphertext)
 	require.NoError(t, err)
+	//user3 should decrypt because he's in role
 	decrypted3, err = p.Decrypt(res3.Grant, userId1, dataId, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, plaintext, string(decrypted1))
 	require.Equal(t, plaintext, string(decrypted3))
 
+	//user2 no longer has access
 	decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
 	require.Error(t, err)
 	require.Nil(t, decrypted2)
 
+	//user3 assigns role to user2
 	err = p.AssignRoleWithGrant(roleName, res3.Grant, []string{userId2}...)
 	require.NoError(t, err)
 
+	//user2 should now be able to decrypt
 	decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
 	require.NoError(t, err)
 
