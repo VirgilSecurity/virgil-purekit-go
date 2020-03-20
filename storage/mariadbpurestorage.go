@@ -38,6 +38,7 @@ package storage
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/protos"
 	"github.com/golang/protobuf/proto"
@@ -57,7 +58,7 @@ func (m *MariaDBPureStorage) SetSerializer(serializer *ModelSerializer) {
 }
 
 func NewMariaDBPureStorage(url string) (*MariaDBPureStorage, error) {
-	db, err := sqlx.Connect("mysql", "url")
+	db, err := sqlx.Connect("mysql", url)
 	if err != nil {
 		return nil, err
 	}
@@ -69,11 +70,15 @@ func (m *MariaDBPureStorage) InsertUser(record *models.UserRecord) error {
 	if err != nil {
 		return err
 	}
+	pb, err := proto.Marshal(rec)
+	if err != nil {
+		return err
+	}
 	_, err = m.db.Exec(`INSERT INTO virgil_users (
 		user_id,
 		record_version,
 		protobuf) 
-	VALUES (?, ?, ?);`, record.UserID, record.RecordVersion, rec)
+	VALUES (?, ?, ?);`, record.UserID, record.RecordVersion, pb)
 	return err
 }
 
@@ -82,10 +87,14 @@ func (m *MariaDBPureStorage) UpdateUser(record *models.UserRecord) error {
 	if err != nil {
 		return err
 	}
+	pb, err := proto.Marshal(rec)
+	if err != nil {
+		return err
+	}
 	_, err = m.db.Exec(`UPDATE virgil_users 
 		SET record_version=?,
 		protobuf=? 
-		WHERE user_id=?;`, record.RecordVersion, rec, record.UserID)
+		WHERE user_id=?;`, record.RecordVersion, pb, record.UserID)
 	return err
 }
 
@@ -100,10 +109,14 @@ func (m *MariaDBPureStorage) UpdateUsers(records []*models.UserRecord, previousR
 		if err != nil {
 			return err
 		}
+		pb, err := proto.Marshal(rec)
+		if err != nil {
+			return err
+		}
 		if _, err = tx.Exec(`UPDATE virgil_users 
 			SET record_version=?,
 			protobuf=? 
-			WHERE user_id=? AND record_version=?`, record.RecordVersion, rec, record.UserID, previousRecordVersion); err != nil {
+			WHERE user_id=? AND record_version=?`, record.RecordVersion, pb, record.UserID, previousRecordVersion); err != nil {
 			return err
 		}
 	}
@@ -120,7 +133,7 @@ func (m *MariaDBPureStorage) parseUser(bin []byte) (*models.UserRecord, error) {
 
 func (m *MariaDBPureStorage) SelectUser(userId string) (*models.UserRecord, error) {
 	var pb []byte
-	if err := m.db.Select(pb, `SELECT protobuf 
+	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_users 
 		WHERE user_id=?`, userId); err != nil {
 		return nil, err
@@ -130,9 +143,18 @@ func (m *MariaDBPureStorage) SelectUser(userId string) (*models.UserRecord, erro
 
 func (m *MariaDBPureStorage) SelectUsers(userIds ...string) ([]*models.UserRecord, error) {
 
+	if len(userIds) == 0 {
+		return []*models.UserRecord{}, nil
+	}
+
+	ids := make([]interface{}, len(userIds))
+	for i := range ids {
+		ids[i] = userIds[i]
+	}
+
 	rows, err := m.db.Query(`SELECT protobuf 
 		FROM virgil_users 
-		WHERE user_id IN (?)`, userIds)
+		WHERE user_id IN (?`+strings.Repeat(",?", len(userIds)-1)+")", ids...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +163,7 @@ func (m *MariaDBPureStorage) SelectUsers(userIds ...string) ([]*models.UserRecor
 	var res []*models.UserRecord
 	for rows.Next() {
 		var pb []byte
-		if err = rows.Scan(pb); err != nil {
+		if err = rows.Scan(&pb); err != nil {
 			return nil, err
 		}
 		rec, err := m.parseUser(pb)
@@ -182,7 +204,7 @@ func (m *MariaDBPureStorage) parseCellKey(bin []byte) (*models.CellKey, error) {
 
 func (m *MariaDBPureStorage) SelectCellKey(userId, dataId string) (*models.CellKey, error) {
 	var pb []byte
-	if err := m.db.Select(pb, `SELECT protobuf
+	if err := m.db.Get(&pb, `SELECT protobuf
 		FROM virgil_keys
 		WHERE user_id=? AND data_id=?`, userId, dataId); err != nil {
 		return nil, err
@@ -191,7 +213,11 @@ func (m *MariaDBPureStorage) SelectCellKey(userId, dataId string) (*models.CellK
 }
 
 func (m *MariaDBPureStorage) InsertCellKey(key *models.CellKey) error {
-	pb, err := m.Serializer.SerializeCellKey(key)
+	pbk, err := m.Serializer.SerializeCellKey(key)
+	if err != nil {
+		return err
+	}
+	pb, err := proto.Marshal(pbk)
 	if err != nil {
 		return err
 	}
@@ -204,7 +230,11 @@ func (m *MariaDBPureStorage) InsertCellKey(key *models.CellKey) error {
 }
 
 func (m *MariaDBPureStorage) UpdateCellKey(key *models.CellKey) error {
-	pb, err := m.Serializer.SerializeCellKey(key)
+	keypb, err := m.Serializer.SerializeCellKey(key)
+	if err != nil {
+		return err
+	}
+	pb, err := proto.Marshal(keypb)
 	if err != nil {
 		return err
 	}
@@ -228,7 +258,11 @@ func (m *MariaDBPureStorage) DeleteCellKey(userId, dataId string) error {
 }
 
 func (m *MariaDBPureStorage) InsertRole(role *models.Role) error {
-	pb, err := m.Serializer.SerializeRole(role)
+	rolepb, err := m.Serializer.SerializeRole(role)
+	if err != nil {
+		return err
+	}
+	pb, err := proto.Marshal(rolepb)
 	if err != nil {
 		return err
 	}
@@ -248,9 +282,19 @@ func (m *MariaDBPureStorage) parseRole(bin []byte) (*models.Role, error) {
 }
 
 func (m *MariaDBPureStorage) SelectRoles(roleNames ...string) ([]*models.Role, error) {
+
+	if len(roleNames) == 0 {
+		return []*models.Role{}, nil
+	}
+
+	names := make([]interface{}, len(roleNames))
+	for i := range names {
+		names[i] = roleNames[i]
+	}
+
 	rows, err := m.db.Query(`SELECT protobuf 
 		FROM virgil_roles 
-		WHERE role_name IN (?)`, roleNames)
+		WHERE role_name IN (?`+strings.Repeat(",?", len(roleNames)-1)+")", names...)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +303,7 @@ func (m *MariaDBPureStorage) SelectRoles(roleNames ...string) ([]*models.Role, e
 	var res []*models.Role
 	for rows.Next() {
 		var pb []byte
-		if err = rows.Scan(pb); err != nil {
+		if err = rows.Scan(&pb); err != nil {
 			return nil, err
 		}
 		rec, err := m.parseRole(pb)
@@ -282,7 +326,11 @@ func (m *MariaDBPureStorage) InsertRoleAssignments(assignments ...*models.RoleAs
 	defer tx.Rollback()
 	for _, ra := range assignments {
 
-		pb, err := m.Serializer.SerializeRoleAssignment(ra)
+		pbasgn, err := m.Serializer.SerializeRoleAssignment(ra)
+		if err != nil {
+			return err
+		}
+		pb, err := proto.Marshal(pbasgn)
 		if err != nil {
 			return err
 		}
@@ -318,7 +366,7 @@ func (m *MariaDBPureStorage) SelectRoleAssignments(userId string) ([]*models.Rol
 	var res []*models.RoleAssignment
 	for rows.Next() {
 		var pb []byte
-		if err = rows.Scan(pb); err != nil {
+		if err = rows.Scan(&pb); err != nil {
 			return nil, err
 		}
 		rec, err := m.parseRoleAssignment(pb)
@@ -335,7 +383,7 @@ func (m *MariaDBPureStorage) SelectRoleAssignments(userId string) ([]*models.Rol
 
 func (m *MariaDBPureStorage) SelectRoleAssignment(roleName, userId string) (*models.RoleAssignment, error) {
 	var pb []byte
-	if err := m.db.Select(pb, `SELECT protobuf 
+	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_role_assignments 
 		WHERE user_id=? AND role_name=?;`, userId, roleName); err != nil {
 		return nil, err
@@ -344,7 +392,12 @@ func (m *MariaDBPureStorage) SelectRoleAssignment(roleName, userId string) (*mod
 }
 
 func (m *MariaDBPureStorage) DeleteRoleAssignments(roleName string, userIds ...string) error {
-	res, err := m.db.Exec(`DELETE FROM virgil_role_assignments WHERE role_name=? AND user_id IN (?);`, roleName, userIds)
+	args := make([]interface{}, len(userIds)+1)
+	args[0] = roleName
+	for i := 0; i < len(userIds); i++ {
+		args[i+1] = userIds[i]
+	}
+	res, err := m.db.Exec(`DELETE FROM virgil_role_assignments WHERE role_name=? AND user_id IN (?`+strings.Repeat(",?", len(userIds)-1)+")", args...)
 	if err != nil {
 		return err
 	}
@@ -359,7 +412,11 @@ func (m *MariaDBPureStorage) DeleteRoleAssignments(roleName string, userIds ...s
 }
 
 func (m *MariaDBPureStorage) InsertGrantKey(key *models.GrantKey) error {
-	pb, err := m.Serializer.SerializeGrantKey(key)
+	pbk, err := m.Serializer.SerializeGrantKey(key)
+	if err != nil {
+		return err
+	}
+	pb, err := proto.Marshal(pbk)
 	if err != nil {
 		return err
 	}
@@ -383,7 +440,7 @@ func (m *MariaDBPureStorage) parseGrantKey(bin []byte) (*models.GrantKey, error)
 
 func (m *MariaDBPureStorage) SelectGrantKey(userId string, keyId []byte) (*models.GrantKey, error) {
 	var pb []byte
-	if err := m.db.Select(pb, `SELECT protobuf 
+	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_grant_keys 
 		WHERE user_id=? AND key_id=?;`, userId, keyId); err != nil {
 		return nil, err
@@ -404,7 +461,7 @@ func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion int) ([]*models.Grant
 	var res []*models.GrantKey
 	for rows.Next() {
 		var pb []byte
-		if err = rows.Scan(pb); err != nil {
+		if err = rows.Scan(&pb); err != nil {
 			return nil, err
 		}
 		rec, err := m.parseGrantKey(pb)
@@ -427,10 +484,14 @@ func (m *MariaDBPureStorage) UpdateGrantKeys(keys ...*models.GrantKey) error {
 		if err != nil {
 			return err
 		}
+		pb, err := proto.Marshal(rec)
+		if err != nil {
+			return err
+		}
 		if _, err = tx.Exec(`UPDATE virgil_grant_keys 
 		SET record_version=?,
 		protobuf=? 
-		WHERE key_id=? AND user_id=?;`, grantKey.RecordVersion, rec, grantKey.KeyID, grantKey.UserID); err != nil {
+		WHERE key_id=? AND user_id=?;`, grantKey.RecordVersion, pb, grantKey.KeyID, grantKey.UserID); err != nil {
 			return err
 		}
 	}
@@ -516,12 +577,12 @@ DROP TABLE IF EXISTS virgil_grant_keys, virgil_role_assignments, virgil_roles, v
 DROP EVENT IF EXISTS delete_expired_grant_keys;
 `
 
-func (m *MariaDBPureStorage) initDB(cleanGrantKeysIntervalSeconds int) error {
+func (m *MariaDBPureStorage) InitDB(cleanGrantKeysIntervalSeconds int) error {
 	_, err := m.db.Exec(createSchema, cleanGrantKeysIntervalSeconds)
 	return err
 }
 
-func (m *MariaDBPureStorage) cleanDB() error {
+func (m *MariaDBPureStorage) CleanDB() error {
 	_, err := m.db.Exec(dropSchema)
 	return err
 }

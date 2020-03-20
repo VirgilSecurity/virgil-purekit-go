@@ -46,6 +46,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/VirgilSecurity/virgil-purekit-go/storage"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
@@ -64,10 +66,19 @@ func BuildContext() (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err 
 	sk1 := os.Getenv("TEST_SK1")
 	pk1 := os.Getenv("TEST_PK1")
 	pheUrl := os.Getenv("TEST_PHE_URL")
-	pureUrl := os.Getenv("TEST_PURE_URL")
+	//pureUrl := os.Getenv("TEST_PURE_URL")
 	kmsUrl := os.Getenv("TEST_KMS_URL")
+	mdbUrl := os.Getenv("TEST_MDB_URL")
 
-	ctx, err = CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
+	strg, err := storage.NewMariaDBPureStorage(mdbUrl)
+	if err != nil {
+		return
+	}
+	strg.CleanDB()
+	strg.InitDB(120)
+
+	ctx, err = CreateContext(&crypto.Crypto{}, at, nms, bup, sk1, pk1, strg, nil, pheUrl, kmsUrl)
+	//ctx, err = CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
 
 	/*ctx.Storage.(*storage.VirgilCloudPureStorage).Client.HTTPClient =
 	client.NewClient(ctx.Storage.(*storage.VirgilCloudPureStorage).Client.URL,
