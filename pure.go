@@ -120,7 +120,7 @@ func (p *Pure) AuthenticateUser(userId, password string, sessionParams *SessionP
 		return nil, errors.Wrap(err, "compute phe key failed")
 	}
 
-	uskData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, make([]byte, 0), phek)
+	uskData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, []byte{}, phek)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (p *Pure) RecoverUser(userId, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	privateKeyData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, make([]byte, 0), oldPhek)
+	privateKeyData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, []byte{}, oldPhek)
 	return p.changeUserPasswordInternal(user, privateKeyData, newPassword)
 }
 
@@ -213,9 +213,9 @@ func (p *Pure) encrypt(userId, dataId string, otherUserIds []string, roleNames [
 			return nil, err
 		}
 	} else { //TODO: IF NOT FOUND
-		recipientList := make([]crypto.PublicKey, 0)
+		var recipientList []crypto.PublicKey
 		recipientList = append(recipientList, publicKeys...)
-		userIds := make([]string, 0)
+		var userIds []string
 		userIds = append(userIds, otherUserIds...)
 		userIds = append(userIds, userId)
 
@@ -534,7 +534,7 @@ func (p *Pure) DecryptGrantFromUser(encryptedGrant string) (*models.PureGrant, e
 	if err != nil {
 		return nil, err
 	}
-	usk, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, make([]byte, 0), phek)
+	usk, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, []byte{}, phek)
 	if err != nil {
 		return nil, err
 	}
@@ -565,7 +565,7 @@ func (p *Pure) ChangeUserPassword(userId, oldPassword, newPassword string) error
 	if err != nil {
 		return err
 	}
-	privateKeyData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, make([]byte, 0), oldPhek)
+	privateKeyData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, []byte{}, oldPhek)
 	if err != nil {
 		return err
 	}
@@ -611,7 +611,7 @@ func (p *Pure) registerUserInternal(userId, password string) (*models.UserRecord
 		return nil, nil, nil, err
 	}
 
-	encryptedUsk, err := p.PureCrypto.EncryptSymmetricWithNewNonce(uskData, make([]byte, 0), accountKey)
+	encryptedUsk, err := p.PureCrypto.EncryptSymmetricWithNewNonce(uskData, []byte{}, accountKey)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -732,7 +732,7 @@ func (p *Pure) changeUserPasswordInternal(user *models.UserRecord, privateKeyDat
 	if err != nil {
 		return err
 	}
-	newEncryptedUsk, err := p.PureCrypto.EncryptSymmetricWithNewNonce(privateKeyData, make([]byte, 0), key)
+	newEncryptedUsk, err := p.PureCrypto.EncryptSymmetricWithNewNonce(privateKeyData, []byte{}, key)
 	if err != nil {
 		return err
 	}

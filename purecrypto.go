@@ -110,7 +110,7 @@ func (p *PureCrypto) DecryptCellKey(data *PureCryptoData, privateKey crypto.Priv
 
 	cipher := foundation.NewRecipientCipher()
 	cipher.SetRandom(random)
-	if err := cipher.StartVerifiedDecryptionWithKey(privateKey.Identifier(), privateKey.Unwrap(), data.Cms, make([]byte, 0)); err != nil {
+	if err := cipher.StartVerifiedDecryptionWithKey(privateKey.Identifier(), privateKey.Unwrap(), data.Cms, []byte{}); err != nil {
 		return nil, err
 	}
 	body1, err := cipher.ProcessDecryption(data.Body)
@@ -181,7 +181,7 @@ func (p *PureCrypto) ExtractPublicKeysIdsFromCellKey(cms []byte) ([][]byte, erro
 		return nil, err
 	}
 	keyList := info.KeyRecipientInfoList()
-	res := make([][]byte, 0)
+	var res [][]byte
 	for keyList != nil && keyList.HasItem() {
 		res = append(res, keyList.Item().RecipientId())
 		if keyList.HasNext() {
@@ -222,7 +222,7 @@ func (p *PureCrypto) DecryptSymmetricWithOneTimeKey(ciphertext, ad, key []byte) 
 	cipher := foundation.NewAes256Gcm()
 	cipher.SetKey(key[:cipher.GetKeyLen()])
 	cipher.SetNonce(key[cipher.GetKeyLen():])
-	return cipher.AuthDecrypt(ciphertext, ad, make([]byte, 0))
+	return cipher.AuthDecrypt(ciphertext, ad, []byte{})
 }
 
 func (p *PureCrypto) EncryptSymmetricWithNewNonce(plaintext, ad, key []byte) ([]byte, error) {

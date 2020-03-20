@@ -197,7 +197,7 @@ func (k *KmsManager) RecoverPwd(record *models.UserRecord) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return k.PureCrypto.DecryptSymmetricWithOneTimeKey(record.PasswordRecoveryBlob, make([]byte, 0), derivedSecret)
+	return k.PureCrypto.DecryptSymmetricWithOneTimeKey(record.PasswordRecoveryBlob, []byte{}, derivedSecret)
 }
 
 func (k *KmsManager) RecoverGrant(grant *models.GrantKey, header []byte) ([]byte, error) {
@@ -209,7 +209,7 @@ func (k *KmsManager) RecoverGrant(grant *models.GrantKey, header []byte) ([]byte
 }
 
 func (k *KmsManager) GeneratePwdRecoveryData(passwordHash []byte) (*KmsEncryptedData, error) {
-	return k.generateEncryptionData(passwordHash, make([]byte, 0), true)
+	return k.generateEncryptionData(passwordHash, []byte{}, true)
 }
 
 func (k *KmsManager) GenerateGrantKeyEncryptionData(grantKey, header []byte) (*KmsEncryptedData, error) {

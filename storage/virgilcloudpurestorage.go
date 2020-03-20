@@ -145,7 +145,7 @@ func (v *VirgilCloudPureStorage) InsertRole(role *models.Role) error {
 
 func (v *VirgilCloudPureStorage) SelectRoles(roleNames ...string) ([]*models.Role, error) {
 	if len(roleNames) == 0 {
-		return make([]*models.Role, 0), nil
+		return []*models.Role{}, nil
 	}
 
 	rolesRequest := &protos.GetRoles{RoleNames: roleNames}
@@ -258,7 +258,7 @@ func (v *VirgilCloudPureStorage) SelectGrantKey(userId string, keyId []byte) (*m
 	return v.Serializer.ParseGrantKey(gk)
 }
 
-func (v *VirgilCloudPureStorage) SelectGrantKeys(recordVersion int) (*models.GrantKey, error) {
+func (v *VirgilCloudPureStorage) SelectGrantKeys(recordVersion int) ([]*models.GrantKey, error) {
 	return nil, errors.New("this method always throws UnsupportedOperationException, as in case of using " +
 		"Virgil Cloud storage, rotation happens on the Virgil side")
 }

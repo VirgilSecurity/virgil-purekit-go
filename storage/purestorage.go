@@ -59,7 +59,7 @@ type PureStorage interface {
 	DeleteRoleAssignments(roleName string, userIds ...string) error
 	InsertGrantKey(key *models.GrantKey) error
 	SelectGrantKey(userId string, keyId []byte) (*models.GrantKey, error)
-	SelectGrantKeys(recordVersion int) (*models.GrantKey, error)
+	SelectGrantKeys(recordVersion int) ([]*models.GrantKey, error)
 	UpdateGrantKeys(keys ...*models.GrantKey) error
 	DeleteGrantKey(userId string, keyId []byte) error
 }
