@@ -74,8 +74,12 @@ func BuildContext() (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err 
 	if err != nil {
 		return
 	}
-	strg.CleanDB()
-	strg.InitDB(120)
+	if err = strg.CleanDB(); err != nil {
+		return
+	}
+	if err = strg.InitDB(120); err != nil {
+		return
+	}
 
 	ctx, err = CreateContext(&crypto.Crypto{}, at, nms, bup, sk1, pk1, strg, nil, pheUrl, kmsUrl)
 	//ctx, err = CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)

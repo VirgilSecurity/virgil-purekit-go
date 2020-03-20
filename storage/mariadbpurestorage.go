@@ -37,7 +37,9 @@
 package storage
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/protos"
@@ -513,7 +515,8 @@ func (m *MariaDBPureStorage) DeleteGrantKey(userId string, keyId []byte) error {
 	return nil
 }
 
-var createSchema = `
+var (
+	stmtsCreate = []string{`
 CREATE TABLE virgil_users (
 user_id CHAR(36) NOT NULL PRIMARY KEY,
 record_version INTEGER NOT NULL,
@@ -521,7 +524,7 @@ record_version INTEGER NOT NULL,
     UNIQUE INDEX user_id_record_version_index(user_id, record_version),
 protobuf VARBINARY(2048) NOT NULL
 );
-
+`, `
 CREATE TABLE virgil_keys (
 user_id CHAR(36) NOT NULL,
     FOREIGN KEY (user_id)
@@ -531,12 +534,12 @@ data_id VARCHAR(128) NOT NULL,
 protobuf VARBINARY(32768) NOT NULL, /* Up to 125 recipients */
     PRIMARY KEY(user_id, data_id)
 );
-
+`, `
 CREATE TABLE virgil_roles (
 role_name VARCHAR(64) NOT NULL PRIMARY KEY,
 protobuf VARBINARY(256) NOT NULL
 );
-
+`, `
 CREATE TABLE virgil_role_assignments (
 role_name VARCHAR(64) NOT NULL,
     FOREIGN KEY (role_name)
@@ -550,7 +553,7 @@ user_id CHAR(36) NOT NULL,
 protobuf VARBINARY(1024) NOT NULL,
     PRIMARY KEY(role_name, user_id)
 );
-
+`, `
 CREATE TABLE virgil_grant_keys (
 record_version INTEGER NOT NULL,
     INDEX record_version_index(record_version),
@@ -564,25 +567,37 @@ expiration_date BIGINT NOT NULL,
 protobuf VARBINARY(512) NOT NULL,
     PRIMARY KEY(user_id, key_id)
 );
-
+`, `
 SET @@global.event_scheduler = 1;
-
-CREATE EVENT delete_expired_grant_keys ON SCHEDULE EVERY $1 SECOND
-    DO
+`}
+	createEvent = `CREATE EVENT delete_expired_grant_keys ON SCHEDULE EVERY %d SECOND
+	DO
         DELETE FROM virgil_grant_keys WHERE expiration_date < UNIX_TIMESTAMP();
 `
 
-var dropSchema = `
-DROP TABLE IF EXISTS virgil_grant_keys, virgil_role_assignments, virgil_roles, virgil_keys, virgil_users;
-DROP EVENT IF EXISTS delete_expired_grant_keys;
-`
+	stmtsDrop = []string{
+		`DROP TABLE IF EXISTS virgil_grant_keys, virgil_role_assignments, virgil_roles, virgil_keys, virgil_users;`,
+		`DROP EVENT IF EXISTS delete_expired_grant_keys;`}
+)
 
 func (m *MariaDBPureStorage) InitDB(cleanGrantKeysIntervalSeconds int) error {
-	_, err := m.db.Exec(createSchema, cleanGrantKeysIntervalSeconds)
-	return err
+	for _, text := range stmtsCreate {
+		if err := m.db.QueryRow(text).Scan(); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+	}
+
+	if err := m.db.QueryRow(fmt.Sprintf(createEvent, cleanGrantKeysIntervalSeconds)).Scan(); err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	return nil
 }
 
 func (m *MariaDBPureStorage) CleanDB() error {
-	_, err := m.db.Exec(dropSchema)
-	return err
+	for _, sql := range stmtsDrop {
+		if _, err := m.db.Exec(sql); err != nil {
+			return err
+		}
+	}
+	return nil
 }
