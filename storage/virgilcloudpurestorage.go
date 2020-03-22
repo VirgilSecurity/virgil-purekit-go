@@ -103,6 +103,10 @@ func (v *VirgilCloudPureStorage) SelectUsers(userIds ...string) ([]*models.UserR
 	}
 	return recs, nil
 }
+func (v *VirgilCloudPureStorage) SelectUsersByVersion(version uint32) ([]*models.UserRecord, error) {
+	return nil, errors.New("this method always throws UnsupportedOperationException, as in case of using " +
+		"Virgil Cloud storage, rotation happens on the Virgil side")
+}
 
 func (v *VirgilCloudPureStorage) DeleteUser(userId string, cascade bool) error {
 	return v.Client.DeleteUser(&protos.UserIdRequest{UserId: userId}, cascade)

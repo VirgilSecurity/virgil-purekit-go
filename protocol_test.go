@@ -69,6 +69,7 @@ func BuildContext() (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err 
 	//pureUrl := os.Getenv("TEST_PURE_URL")
 	kmsUrl := os.Getenv("TEST_KMS_URL")
 	mdbUrl := os.Getenv("TEST_MDB_URL")
+	updateToken := os.Getenv("TEST_UPDATE_TOKEN")
 
 	strg, err := storage.NewMariaDBPureStorage(mdbUrl)
 	if err != nil {
@@ -82,6 +83,9 @@ func BuildContext() (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err 
 	}
 
 	ctx, err = CreateContext(&crypto.Crypto{}, at, nms, bup, sk1, pk1, strg, nil, pheUrl, kmsUrl)
+	if err == nil {
+		ctx.SetUpdateToken(updateToken)
+	}
 	//ctx, err = CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
 
 	/*ctx.Storage.(*storage.VirgilCloudPureStorage).Client.HTTPClient =

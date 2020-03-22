@@ -187,7 +187,7 @@ func (p *Pure) DeleteUser(userId string) error {
 	return p.Storage.DeleteUser(userId, true)
 }
 
-/*func (p *Pure) PerformRotation() (*RotationResults, error) {
+func (p *Pure) PerformRotation() (*RotationResults, error) {
 	if p.CurrentVersion <= 1 {
 		return &RotationResults{0, 0}, nil
 	}
@@ -195,10 +195,90 @@ func (p *Pure) DeleteUser(userId string) error {
 	usersRotated := uint64(0)
 	grantsRotated := uint64(0)
 	for {
-		users, err := p.Storage.SelectUsers()
-	}
+		users, err := p.Storage.SelectUsersByVersion(p.CurrentVersion - 1)
+		if err != nil {
+			return nil, err
+		}
+		var newRecords []*models.UserRecord
+		for _, user := range users {
+			if user.RecordVersion != p.CurrentVersion-1 {
+				return nil, errors.New("record version mismatch")
+			}
+			newRecord, err := p.PheManager.PerformRotation(user.PheRecord)
+			if err != nil {
+				return nil, err
+			}
+			newWrap, err := p.KmsManager.PerformPwdRotation(user.PasswordRecoveryWrap)
+			if err != nil {
+				return nil, err
+			}
 
-}*/
+			newUserRecord := &models.UserRecord{
+				UserID:               user.UserID,
+				PheRecord:            newRecord,
+				RecordVersion:        currentGrantVersion,
+				UPK:                  user.UPK,
+				EncryptedUsk:         user.EncryptedUsk,
+				EncryptedUskBackup:   user.EncryptedUskBackup,
+				BackupPwdHash:        user.BackupPwdHash,
+				PasswordRecoveryWrap: newWrap,
+				PasswordRecoveryBlob: user.PasswordRecoveryBlob,
+			}
+			newRecords = append(newRecords, newUserRecord)
+
+		}
+		if err = p.Storage.UpdateUsers(newRecords, currentGrantVersion-1); err != nil {
+			return nil, err
+		}
+		if len(newRecords) > 0 {
+			usersRotated += uint64(len(newRecords))
+		} else {
+			break
+		}
+
+	}
+	for {
+		grantKeys, err := p.Storage.SelectGrantKeys(currentGrantVersion - 1)
+		if err != nil {
+			return nil, err
+		}
+		var updatedGrantKeys []*models.GrantKey
+		for _, gk := range grantKeys {
+			if gk.RecordVersion != p.CurrentVersion-1 {
+				return nil, errors.New("grant version mismatch")
+			}
+			newWrap, err := p.KmsManager.PerformGrantRotation(gk.EncryptedGrantKeyWrap)
+			if err != nil {
+				return nil, err
+			}
+
+			newGrantKey := &models.GrantKey{
+				UserID:                gk.UserID,
+				KeyID:                 gk.KeyID,
+				RecordVersion:         p.CurrentVersion,
+				EncryptedGrantKeyWrap: newWrap,
+				EncryptedGrantKeyBlob: gk.EncryptedGrantKeyBlob,
+				CreationDate:          gk.CreationDate,
+				ExpirationDate:        gk.ExpirationDate,
+			}
+
+			updatedGrantKeys = append(updatedGrantKeys, newGrantKey)
+		}
+
+		if err = p.Storage.UpdateGrantKeys(updatedGrantKeys...); err != nil {
+			return nil, err
+		}
+		if len(updatedGrantKeys) > 0 {
+			grantsRotated += uint64(len(updatedGrantKeys))
+		} else {
+			break
+		}
+	}
+	return &RotationResults{
+		UsersRotated:  usersRotated,
+		GrantsRotated: grantsRotated,
+	}, nil
+}
 
 func (p *Pure) Encrypt(userId, dataId string, plaintext []byte) ([]byte, error) {
 	return p.encrypt(userId, dataId, nil, nil, nil, plaintext)

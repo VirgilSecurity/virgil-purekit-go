@@ -39,4 +39,7 @@ package purekit
 import "github.com/pkg/errors"
 
 // ErrInvalidPassword is returned when protocol determines validation failure
-var ErrInvalidPassword = errors.New("invalid password")
+var (
+	ErrInvalidPassword = errors.New("invalid password")
+	ErrNoAccess        = errors.New("no access")
+)

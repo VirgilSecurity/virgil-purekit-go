@@ -223,3 +223,15 @@ func ParseCredentials(prefix, creds string, versioned bool, numPayloads int) (*C
 	}
 	return res, nil
 }
+
+func (c *Context) SetUpdateToken(updateToken string) error {
+	token, err := ParseCredentials("UT", updateToken, true, 3)
+	if err != nil {
+		return err
+	}
+	if token.Version != c.PublicKey.Version+1 {
+		return errors.New("update token version mismatch")
+	}
+	c.UpdateToken = token
+	return nil
+}

@@ -70,6 +70,7 @@ func NewPheManager(context *Context) (*PheManager, error) {
 		mgr.CurrentVersion = context.PublicKey.Version + 1
 		mgr.UpdateToken = context.UpdateToken.Payload1
 		prevClient := phe.NewPheClient()
+		mgr.PreviousClient = prevClient
 		prevClient.SetRandom(random)
 		prevClient.SetOperationRandom(random)
 		if err := prevClient.SetKeys(context.SecretKey.Payload1, context.PublicKey.Payload1); err != nil {

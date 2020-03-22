@@ -46,6 +46,7 @@ type PureStorage interface {
 	UpdateUsers(records []*models.UserRecord, previousRecordVersion int) error
 	SelectUser(userId string) (*models.UserRecord, error)
 	SelectUsers(userIds ...string) ([]*models.UserRecord, error)
+	SelectUsersByVersion(version uint32) ([]*models.UserRecord, error)
 	DeleteUser(userId string, cascade bool) error
 	SelectCellKey(userId, dataId string) (*models.CellKey, error)
 	InsertCellKey(key *models.CellKey) error

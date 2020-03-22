@@ -179,6 +179,34 @@ func (m *MariaDBPureStorage) SelectUsers(userIds ...string) ([]*models.UserRecor
 	}
 	return res, nil
 }
+func (m *MariaDBPureStorage) SelectUsersByVersion(version uint32) ([]*models.UserRecord, error) {
+
+	rows, err := m.db.Query(`SELECT protobuf 
+		FROM virgil_users 
+		WHERE record_version=?
+		LIMIT 1000;`, version)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var res []*models.UserRecord
+	for rows.Next() {
+		var pb []byte
+		if err = rows.Scan(&pb); err != nil {
+			return nil, err
+		}
+		rec, err := m.parseUser(pb)
+		if err != nil {
+			return nil, err
+		}
+		if rec.RecordVersion != version {
+			return nil, errors.New("user record version mismatch")
+		}
+		res = append(res, rec)
+	}
+	return res, nil
+}
 
 func (m *MariaDBPureStorage) DeleteUser(userId string, cascade bool) error {
 	if !cascade {
