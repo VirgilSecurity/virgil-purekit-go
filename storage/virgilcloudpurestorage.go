@@ -61,7 +61,7 @@ func (v *VirgilCloudPureStorage) UpdateUser(record *models.UserRecord) error {
 	return v.sendUser(record, false)
 }
 
-func (v *VirgilCloudPureStorage) UpdateUsers(records []*models.UserRecord, previousRecordVersion int) error {
+func (v *VirgilCloudPureStorage) UpdateUsers(records []*models.UserRecord, previousRecordVersion uint32) error {
 	return errors.New("this method always throws UnsupportedOperationException, as in case of using " +
 		"Virgil Cloud storage, rotation happens on the Virgil side")
 }
@@ -262,7 +262,7 @@ func (v *VirgilCloudPureStorage) SelectGrantKey(userId string, keyId []byte) (*m
 	return v.Serializer.ParseGrantKey(gk)
 }
 
-func (v *VirgilCloudPureStorage) SelectGrantKeys(recordVersion int) ([]*models.GrantKey, error) {
+func (v *VirgilCloudPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error) {
 	return nil, errors.New("this method always throws UnsupportedOperationException, as in case of using " +
 		"Virgil Cloud storage, rotation happens on the Virgil side")
 }

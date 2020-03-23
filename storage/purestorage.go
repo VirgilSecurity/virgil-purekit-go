@@ -43,7 +43,7 @@ import (
 type PureStorage interface {
 	InsertUser(record *models.UserRecord) error
 	UpdateUser(record *models.UserRecord) error
-	UpdateUsers(records []*models.UserRecord, previousRecordVersion int) error
+	UpdateUsers(records []*models.UserRecord, previousRecordVersion uint32) error
 	SelectUser(userId string) (*models.UserRecord, error)
 	SelectUsers(userIds ...string) ([]*models.UserRecord, error)
 	SelectUsersByVersion(version uint32) ([]*models.UserRecord, error)
@@ -60,7 +60,7 @@ type PureStorage interface {
 	DeleteRoleAssignments(roleName string, userIds ...string) error
 	InsertGrantKey(key *models.GrantKey) error
 	SelectGrantKey(userId string, keyId []byte) (*models.GrantKey, error)
-	SelectGrantKeys(recordVersion int) ([]*models.GrantKey, error)
+	SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error)
 	UpdateGrantKeys(keys ...*models.GrantKey) error
 	DeleteGrantKey(userId string, keyId []byte) error
 }

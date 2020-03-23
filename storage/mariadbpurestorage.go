@@ -100,7 +100,7 @@ func (m *MariaDBPureStorage) UpdateUser(record *models.UserRecord) error {
 	return err
 }
 
-func (m *MariaDBPureStorage) UpdateUsers(records []*models.UserRecord, previousRecordVersion int) error {
+func (m *MariaDBPureStorage) UpdateUsers(records []*models.UserRecord, previousRecordVersion uint32) error {
 	tx, err := m.db.Beginx()
 	if err != nil {
 		return err
@@ -478,7 +478,7 @@ func (m *MariaDBPureStorage) SelectGrantKey(userId string, keyId []byte) (*model
 	return m.parseGrantKey(pb)
 }
 
-func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion int) ([]*models.GrantKey, error) {
+func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error) {
 	rows, err := m.db.Query(`SELECT protobuf 
 		FROM virgil_grant_keys 
 		WHERE record_version=? 
@@ -622,8 +622,8 @@ func (m *MariaDBPureStorage) InitDB(cleanGrantKeysIntervalSeconds int) error {
 }
 
 func (m *MariaDBPureStorage) CleanDB() error {
-	for _, sql := range stmtsDrop {
-		if _, err := m.db.Exec(sql); err != nil {
+	for _, stmt := range stmtsDrop {
+		if _, err := m.db.Exec(stmt); err != nil {
 			return err
 		}
 	}

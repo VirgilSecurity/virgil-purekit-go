@@ -67,8 +67,6 @@ type Pure struct {
 
 const (
 	DEFAULT_GRANT_TTL = time.Hour
-
-	currentGrantVersion = 1
 )
 
 func NewPure(context *Context) (*Pure, error) {
@@ -125,7 +123,7 @@ func (p *Pure) AuthenticateUser(userId, password string, sessionParams *SessionP
 		return nil, err
 	}
 	ukp, err := p.PureCrypto.ImportPrivateKey(uskData)
-	return p.authenticateUserInternal(user, ukp, phek, sessionParams.SessionID, sessionParams.TTL)
+	return p.authenticateUserInternal(user, ukp, phek, sessionParams)
 }
 
 func (p *Pure) InvalidateEncryptedUserGrant(encryptedGrant string) error {
@@ -216,7 +214,7 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 			newUserRecord := &models.UserRecord{
 				UserID:               user.UserID,
 				PheRecord:            newRecord,
-				RecordVersion:        currentGrantVersion,
+				RecordVersion:        p.CurrentVersion,
 				UPK:                  user.UPK,
 				EncryptedUsk:         user.EncryptedUsk,
 				EncryptedUskBackup:   user.EncryptedUskBackup,
@@ -227,7 +225,7 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 			newRecords = append(newRecords, newUserRecord)
 
 		}
-		if err = p.Storage.UpdateUsers(newRecords, currentGrantVersion-1); err != nil {
+		if err = p.Storage.UpdateUsers(newRecords, p.CurrentVersion-1); err != nil {
 			return nil, err
 		}
 		if len(newRecords) > 0 {
@@ -238,7 +236,7 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 
 	}
 	for {
-		grantKeys, err := p.Storage.SelectGrantKeys(currentGrantVersion - 1)
+		grantKeys, err := p.Storage.SelectGrantKeys(p.CurrentVersion - 1)
 		if err != nil {
 			return nil, err
 		}
@@ -724,7 +722,17 @@ func (p *Pure) registerUserInternal(userId, password string) (*models.UserRecord
 	return userRecord, ukp, accountKey, nil
 }
 
-func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.PrivateKey, phek []byte, sessionId string, ttl time.Duration) (*AuthResult, error) {
+func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.PrivateKey, phek []byte, sessionParams *SessionParameters) (*AuthResult, error) {
+
+	var ttl time.Duration
+	var sessionId string
+	if sessionParams == nil {
+		ttl = DEFAULT_GRANT_TTL
+	} else {
+		ttl = sessionParams.TTL
+		sessionId = sessionParams.SessionID
+	}
+
 	creationDate := time.Now()
 	expirationDate := creationDate.Add(ttl)
 
@@ -765,7 +773,7 @@ func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.Pr
 	grantKey := &models.GrantKey{
 		UserID:                record.UserID,
 		KeyID:                 keyId,
-		RecordVersion:         record.RecordVersion,
+		RecordVersion:         p.CurrentVersion,
 		EncryptedGrantKeyWrap: grantWrap.Wrap,
 		EncryptedGrantKeyBlob: grantWrap.Blob,
 		CreationDate:          uint64(creationDate.Unix()),
@@ -782,7 +790,7 @@ func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.Pr
 	}
 
 	encryptedGrant := &protos.EncryptedGrant{
-		Version:       currentGrantVersion,
+		Version:       storage.CURRENT_ENCRYPTED_GRANT_VERSION,
 		EncryptedPhek: encryptedPhek,
 		Header:        headerBytes,
 	}

@@ -59,6 +59,7 @@ const (
 	CURRENT_ROLE_ASSIGNMENT_SIGNED_VERSION = 1
 	CURRENT_GRANT_KEY_VERSION              = 1
 	CURRENT_GRANT_KEY_SIGNED_VERSION       = 1
+	CURRENT_ENCRYPTED_GRANT_VERSION        = 1
 )
 
 func (m *ModelSerializer) GenerateSignature(data []byte) ([]byte, error) {

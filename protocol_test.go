@@ -53,40 +53,67 @@ import (
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 )
 
-func BuildContext() (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err error) {
+func BuildContext(useUpdateToken, useNewKeys, useLocalStorage, skipClean bool, nmsBin []byte, bpk crypto.PrivateKey) (ctx *Context, buppk crypto.PrivateKey, nmsData []byte, err error) {
 	c := &crypto.Crypto{}
-	nmsData, _ = c.Random(32)
+
+	if nmsBin == nil {
+		nmsData, _ = c.Random(32)
+	} else {
+		nmsData = nmsBin
+	}
 	nms := fmt.Sprintf("NM.%s", base64.StdEncoding.EncodeToString(nmsData))
 
-	buppk, _ = c.GenerateKeypair()
+	if bpk == nil {
+		buppk, _ = c.GenerateKeypair()
+	} else {
+		buppk = bpk
+	}
+
 	bubin, _ := c.ExportPublicKey(buppk.PublicKey())
 	bup := fmt.Sprintf("BU.%s", base64.StdEncoding.EncodeToString(bubin))
 
 	at := os.Getenv("TEST_APP_TOKEN")
 	sk1 := os.Getenv("TEST_SK1")
 	pk1 := os.Getenv("TEST_PK1")
+	sk2 := os.Getenv("TEST_SK2")
+	pk2 := os.Getenv("TEST_PK2")
 	pheUrl := os.Getenv("TEST_PHE_URL")
-	//pureUrl := os.Getenv("TEST_PURE_URL")
+	pureUrl := os.Getenv("TEST_PURE_URL")
 	kmsUrl := os.Getenv("TEST_KMS_URL")
 	mdbUrl := os.Getenv("TEST_MDB_URL")
 	updateToken := os.Getenv("TEST_UPDATE_TOKEN")
 
-	strg, err := storage.NewMariaDBPureStorage(mdbUrl)
-	if err != nil {
-		return
-	}
-	if err = strg.CleanDB(); err != nil {
-		return
-	}
-	if err = strg.InitDB(120); err != nil {
-		return
+	var sk, pk string
+
+	if useNewKeys {
+		sk, pk = sk2, pk2
+	} else {
+		sk, pk = sk1, pk1
 	}
 
-	ctx, err = CreateContext(&crypto.Crypto{}, at, nms, bup, sk1, pk1, strg, nil, pheUrl, kmsUrl)
-	if err == nil {
+	if useLocalStorage {
+		var strg storage.PureStorage
+		strg, err = storage.NewMariaDBPureStorage(mdbUrl)
+		if err != nil {
+			return
+		}
+		if !skipClean {
+			if err = strg.(*storage.MariaDBPureStorage).CleanDB(); err != nil {
+				return
+			}
+			if err = strg.(*storage.MariaDBPureStorage).InitDB(60); err != nil {
+				return
+			}
+		}
+
+		ctx, err = CreateContext(&crypto.Crypto{}, at, nms, bup, sk, pk, strg, nil, pheUrl, kmsUrl)
+	} else {
+		ctx, err = CreateCloudContext(at, nms, bup, sk, pk, nil, pheUrl, pureUrl, kmsUrl)
+	}
+
+	if err == nil && useUpdateToken {
 		ctx.SetUpdateToken(updateToken)
 	}
-	//ctx, err = CreateCloudContext(at, nms, bup, sk1, pk1, nil, pheUrl, pureUrl, kmsUrl)
 
 	/*ctx.Storage.(*storage.VirgilCloudPureStorage).Client.HTTPClient =
 	client.NewClient(ctx.Storage.(*storage.VirgilCloudPureStorage).Client.URL,
@@ -103,7 +130,7 @@ func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
 	userName := randomString()
 	password := randomString()
 
-	ctx, _, _, err := BuildContext()
+	ctx, _, _, err := BuildContext(false, false, false, false, nil, nil)
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -126,7 +153,7 @@ func TestPure_EncryptDecrypt(t *testing.T) {
 	dataId := randomString()
 	plaintext := randomString()
 
-	ctx, _, _, err := BuildContext()
+	ctx, _, _, err := BuildContext(false, false, false, false, nil, nil)
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -158,7 +185,7 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 	plaintext := randomString()
 	password3 := randomString()
 
-	ctx, buppk, _, err := BuildContext()
+	ctx, buppk, _, err := BuildContext(false, false, true, false, nil, nil)
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -237,7 +264,7 @@ func TestPure_Roles(t *testing.T) {
 	plaintext := randomString()
 	roleName := randomString()
 
-	ctx, _, _, err := BuildContext()
+	ctx, _, _, err := BuildContext(false, false, true, false, nil, nil)
 	require.NoError(t, err)
 
 	p, err := NewPure(ctx)
@@ -320,8 +347,84 @@ func TestPure_Roles(t *testing.T) {
 
 }
 
+func TestRotate(t *testing.T) {
+
+	firstUserId := randomString()
+	firstUserPassword := randomString()
+	dataId := randomString()
+	text := []byte(randomString())
+
+	ctx, buppk, nms, err := BuildContext(false, false, true, false, nil, nil)
+	require.NoError(t, err)
+	p, err := NewPure(ctx)
+	require.NoError(t, err)
+
+	require.NoError(t, p.RegisterUser(firstUserId, firstUserPassword))
+	for i := 0; i < 20; i++ {
+		userId, password := randomString(), randomString()
+		require.NoError(t, p.RegisterUser(userId, password))
+	}
+
+	authResult1, err := p.AuthenticateUser(firstUserId, firstUserPassword, nil)
+	require.NoError(t, err)
+	encryptedGrant1 := authResult1.EncryptedGrant
+
+	// token received, do rotation
+	ctx, _, _, err = BuildContext(true, false, true, true, nms, buppk)
+	require.NoError(t, err)
+	p, err = NewPure(ctx)
+	require.NoError(t, err)
+	ciphertext, err := p.Encrypt(firstUserId, dataId, text)
+	require.NoError(t, err)
+
+	authResult2, err := p.AuthenticateUser(firstUserId, firstUserPassword, nil)
+	require.NoError(t, err)
+	encryptedGrant2 := authResult2.EncryptedGrant
+
+	results, err := p.PerformRotation()
+	require.NoError(t, err)
+	require.Equal(t, uint64(21), results.UsersRotated)
+	require.Equal(t, uint64(1), results.GrantsRotated)
+
+	// check that everything works with new keys
+	ctx, _, _, err = BuildContext(false, true, true, true, nms, buppk)
+	require.NoError(t, err)
+	p, err = NewPure(ctx)
+	require.NoError(t, err)
+	pureGrant1, err := p.DecryptGrantFromUser(encryptedGrant1)
+	require.NoError(t, err)
+	pureGrant2, err := p.DecryptGrantFromUser(encryptedGrant2)
+	require.NoError(t, err)
+
+	//decrypt ciphertext with both grants
+	decrypted, err := p.Decrypt(pureGrant1, firstUserId, dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, decrypted, text)
+	decrypted, err = p.Decrypt(pureGrant2, firstUserId, dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, decrypted, text)
+
+	// check that everything works with old keys
+	ctx, _, _, err = BuildContext(true, false, true, true, nms, buppk)
+	require.NoError(t, err)
+	p, err = NewPure(ctx)
+	require.NoError(t, err)
+	pureGrant1, err = p.DecryptGrantFromUser(encryptedGrant1)
+	require.NoError(t, err)
+	pureGrant2, err = p.DecryptGrantFromUser(encryptedGrant2)
+	require.NoError(t, err)
+
+	//decrypt ciphertext with both grants
+	decrypted, err = p.Decrypt(pureGrant1, firstUserId, dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, decrypted, text)
+	decrypted, err = p.Decrypt(pureGrant2, firstUserId, dataId, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, decrypted, text)
+}
+
 func randomString() string {
-	b := make([]byte, 8)
+	b := make([]byte, 16)
 	rand.Read(b)
 	t := base64.StdEncoding.EncodeToString(b)
 	return t
