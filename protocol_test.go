@@ -130,21 +130,24 @@ func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
 	userName := randomString()
 	password := randomString()
 
-	ctx, _, _, err := BuildContext(false, false, false, false, nil, nil)
-	require.NoError(t, err)
+	for st := 0; st < 2; st++ {
+		ctx, _, _, err := BuildContext(false, false, st == 0, false, nil, nil)
+		require.NoError(t, err)
 
-	p, err := NewPure(ctx)
-	require.NoError(t, err)
+		p, err := NewPure(ctx)
+		require.NoError(t, err)
 
-	err = p.RegisterUser(userName, password)
-	require.NoError(t, err)
+		err = p.RegisterUser(userName, password)
+		require.NoError(t, err)
 
-	res, err := p.AuthenticateUser(userName, password, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, res)
+		res, err := p.AuthenticateUser(userName, password, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res)
+	}
+
 }
 
 func TestPure_EncryptDecrypt(t *testing.T) {
@@ -153,27 +156,29 @@ func TestPure_EncryptDecrypt(t *testing.T) {
 	dataId := randomString()
 	plaintext := randomString()
 
-	ctx, _, _, err := BuildContext(false, false, false, false, nil, nil)
-	require.NoError(t, err)
+	for st := 0; st < 2; st++ {
+		ctx, _, _, err := BuildContext(false, false, st == 0, false, nil, nil)
+		require.NoError(t, err)
 
-	p, err := NewPure(ctx)
-	require.NoError(t, err)
+		p, err := NewPure(ctx)
+		require.NoError(t, err)
 
-	err = p.RegisterUser(userName, password)
-	require.NoError(t, err)
+		err = p.RegisterUser(userName, password)
+		require.NoError(t, err)
 
-	res, err := p.AuthenticateUser(userName, password, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, res)
+		res, err := p.AuthenticateUser(userName, password, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res)
 
-	ciphertext, err := p.encrypt(userName, dataId, nil, nil, nil, []byte(plaintext))
-	require.NoError(t, err)
-	decrypted, err := p.Decrypt(res.Grant, userName, dataId, ciphertext)
-	require.NoError(t, err)
-	require.Equal(t, plaintext, string(decrypted))
+		ciphertext, err := p.encrypt(userName, dataId, nil, nil, nil, []byte(plaintext))
+		require.NoError(t, err)
+		decrypted, err := p.Decrypt(res.Grant, userName, dataId, ciphertext)
+		require.NoError(t, err)
+		require.Equal(t, plaintext, string(decrypted))
+	}
 }
 
 func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
@@ -185,72 +190,74 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 	plaintext := randomString()
 	password3 := randomString()
 
-	ctx, buppk, _, err := BuildContext(false, false, true, false, nil, nil)
-	require.NoError(t, err)
+	for st := 0; st < 2; st++ {
+		ctx, buppk, _, err := BuildContext(false, false, st == 0, false, nil, nil)
+		require.NoError(t, err)
 
-	p, err := NewPure(ctx)
-	require.NoError(t, err)
+		p, err := NewPure(ctx)
+		require.NoError(t, err)
 
-	err = p.RegisterUser(userId1, password1)
-	require.NoError(t, err)
+		err = p.RegisterUser(userId1, password1)
+		require.NoError(t, err)
 
-	res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, res1)
+		res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res1)
 
-	err = p.RegisterUser(userId2, password2)
-	require.NoError(t, err)
+		err = p.RegisterUser(userId2, password2)
+		require.NoError(t, err)
 
-	res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, res2)
+		res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res2)
 
-	ciphertext, err := p.encrypt(userId1, dataId, nil, nil, nil, []byte(plaintext))
-	require.NoError(t, err)
+		ciphertext, err := p.encrypt(userId1, dataId, nil, nil, nil, []byte(plaintext))
+		require.NoError(t, err)
 
-	err = p.Share(res1.Grant, dataId, []string{userId2}, nil)
-	require.NoError(t, err)
-	decrypted1, err := p.Decrypt(res1.Grant, "", dataId, ciphertext)
-	require.NoError(t, err)
-	decrypted2, err := p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
-	require.NoError(t, err)
-	require.Equal(t, plaintext, string(decrypted1))
-	require.Equal(t, plaintext, string(decrypted2))
+		err = p.Share(res1.Grant, dataId, []string{userId2}, nil)
+		require.NoError(t, err)
+		decrypted1, err := p.Decrypt(res1.Grant, "", dataId, ciphertext)
+		require.NoError(t, err)
+		decrypted2, err := p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+		require.NoError(t, err)
+		require.Equal(t, plaintext, string(decrypted1))
+		require.Equal(t, plaintext, string(decrypted2))
 
-	//test Unshare
-	err = p.Unshare(userId1, dataId, []string{userId2}, nil)
-	require.NoError(t, err)
+		//test Unshare
+		err = p.Unshare(userId1, dataId, []string{userId2}, nil)
+		require.NoError(t, err)
 
-	decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
-	require.Error(t, err)
-	require.Nil(t, decrypted2)
+		decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+		require.Error(t, err)
+		require.Nil(t, decrypted2)
 
-	//test Admin
-	adminGrant, err := p.CreateUserGrantAsAdmin(userId1, buppk, DEFAULT_GRANT_TTL)
-	require.NoError(t, err)
-	require.NotNil(t, adminGrant)
-	decryptedAdmin, err := p.Decrypt(adminGrant, "", dataId, ciphertext)
-	require.NoError(t, err)
-	require.Equal(t, plaintext, string(decryptedAdmin))
+		//test Admin
+		adminGrant, err := p.CreateUserGrantAsAdmin(userId1, buppk, DEFAULT_GRANT_TTL)
+		require.NoError(t, err)
+		require.NotNil(t, adminGrant)
+		decryptedAdmin, err := p.Decrypt(adminGrant, "", dataId, ciphertext)
+		require.NoError(t, err)
+		require.Equal(t, plaintext, string(decryptedAdmin))
 
-	err = p.ChangeUserPasswordWithGrant(adminGrant, password3)
-	require.NoError(t, err)
+		err = p.ChangeUserPasswordWithGrant(adminGrant, password3)
+		require.NoError(t, err)
 
-	res3, err := p.AuthenticateUser(userId1, password3, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
+		res3, err := p.AuthenticateUser(userId1, password3, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
 
-	decrypted3, err := p.Decrypt(res3.Grant, "", dataId, ciphertext)
-	require.NoError(t, err)
-	require.Equal(t, plaintext, string(decrypted3))
+		decrypted3, err := p.Decrypt(res3.Grant, "", dataId, ciphertext)
+		require.NoError(t, err)
+		require.Equal(t, plaintext, string(decrypted3))
+	}
 }
 
 func TestPure_Roles(t *testing.T) {
@@ -264,86 +271,88 @@ func TestPure_Roles(t *testing.T) {
 	plaintext := randomString()
 	roleName := randomString()
 
-	ctx, _, _, err := BuildContext(false, false, true, false, nil, nil)
-	require.NoError(t, err)
+	for st := 0; st < 2; st++ {
+		ctx, _, _, err := BuildContext(false, false, st == 0, false, nil, nil)
+		require.NoError(t, err)
 
-	p, err := NewPure(ctx)
-	require.NoError(t, err)
+		p, err := NewPure(ctx)
+		require.NoError(t, err)
 
-	err = p.RegisterUser(userId1, password1)
-	require.NoError(t, err)
-	err = p.RegisterUser(userId2, password2)
-	require.NoError(t, err)
-	err = p.RegisterUser(userId3, password3)
-	require.NoError(t, err)
+		err = p.RegisterUser(userId1, password1)
+		require.NoError(t, err)
+		err = p.RegisterUser(userId2, password2)
+		require.NoError(t, err)
+		err = p.RegisterUser(userId3, password3)
+		require.NoError(t, err)
 
-	//create role for users 1 and 2
-	err = p.CreateRole(roleName, []string{userId1, userId2}...)
-	require.NoError(t, err)
+		//create role for users 1 and 2
+		err = p.CreateRole(roleName, []string{userId1, userId2}...)
+		require.NoError(t, err)
 
-	res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
-	res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
-	res3, err := p.AuthenticateUser(userId3, password3, &SessionParameters{
-		SessionID: randomString(),
-		TTL:       DEFAULT_GRANT_TTL,
-	})
-	require.NoError(t, err)
+		res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
+		res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
+		res3, err := p.AuthenticateUser(userId3, password3, &SessionParameters{
+			SessionID: randomString(),
+			TTL:       DEFAULT_GRANT_TTL,
+		})
+		require.NoError(t, err)
 
-	//user1 encrypts to role
-	ciphertext, err := p.encrypt(userId1, dataId, nil, []string{roleName}, nil, []byte(plaintext))
-	require.NoError(t, err)
+		//user1 encrypts to role
+		ciphertext, err := p.encrypt(userId1, dataId, nil, []string{roleName}, nil, []byte(plaintext))
+		require.NoError(t, err)
 
-	decrypted1, err := p.Decrypt(res1.Grant, "", dataId, ciphertext)
-	require.NoError(t, err)
-	decrypted2, err := p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
-	require.NoError(t, err)
+		decrypted1, err := p.Decrypt(res1.Grant, "", dataId, ciphertext)
+		require.NoError(t, err)
+		decrypted2, err := p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+		require.NoError(t, err)
 
-	require.Equal(t, plaintext, string(decrypted1))
-	require.Equal(t, plaintext, string(decrypted2))
+		require.Equal(t, plaintext, string(decrypted1))
+		require.Equal(t, plaintext, string(decrypted2))
 
-	//third user decryption should fail
-	decrypted3, err := p.Decrypt(res3.Grant, "", dataId, ciphertext)
-	require.Error(t, err)
-	require.Nil(t, decrypted3)
+		//third user decryption should fail
+		decrypted3, err := p.Decrypt(res3.Grant, "", dataId, ciphertext)
+		require.Error(t, err)
+		require.Nil(t, decrypted3)
 
-	//assign role to user3
-	err = p.AssignRoleWithGrant(roleName, res2.Grant, []string{userId3}...)
-	require.NoError(t, err)
-	//remove role from user1,2
-	err = p.UnassignRole(roleName, []string{userId1, userId2}...)
-	require.NoError(t, err)
+		//assign role to user3
+		err = p.AssignRoleWithGrant(roleName, res2.Grant, []string{userId3}...)
+		require.NoError(t, err)
+		//remove role from user1,2
+		err = p.UnassignRole(roleName, []string{userId1, userId2}...)
+		require.NoError(t, err)
 
-	//user1 should decrypt because he's owner
-	decrypted1, err = p.Decrypt(res1.Grant, "", dataId, ciphertext)
-	require.NoError(t, err)
-	//user3 should decrypt because he's in role
-	decrypted3, err = p.Decrypt(res3.Grant, userId1, dataId, ciphertext)
-	require.NoError(t, err)
-	require.Equal(t, plaintext, string(decrypted1))
-	require.Equal(t, plaintext, string(decrypted3))
+		//user1 should decrypt because he's owner
+		decrypted1, err = p.Decrypt(res1.Grant, "", dataId, ciphertext)
+		require.NoError(t, err)
+		//user3 should decrypt because he's in role
+		decrypted3, err = p.Decrypt(res3.Grant, userId1, dataId, ciphertext)
+		require.NoError(t, err)
+		require.Equal(t, plaintext, string(decrypted1))
+		require.Equal(t, plaintext, string(decrypted3))
 
-	//user2 no longer has access
-	decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
-	require.Error(t, err)
-	require.Nil(t, decrypted2)
+		//user2 no longer has access
+		decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+		require.Error(t, err)
+		require.Nil(t, decrypted2)
 
-	//user3 assigns role to user2
-	err = p.AssignRoleWithGrant(roleName, res3.Grant, []string{userId2}...)
-	require.NoError(t, err)
+		//user3 assigns role to user2
+		err = p.AssignRoleWithGrant(roleName, res3.Grant, []string{userId2}...)
+		require.NoError(t, err)
 
-	//user2 should now be able to decrypt
-	decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
-	require.NoError(t, err)
+		//user2 should now be able to decrypt
+		decrypted2, err = p.Decrypt(res2.Grant, userId1, dataId, ciphertext)
+		require.NoError(t, err)
 
-	require.Equal(t, plaintext, string(decrypted2))
+		require.Equal(t, plaintext, string(decrypted2))
+	}
 
 }
 
