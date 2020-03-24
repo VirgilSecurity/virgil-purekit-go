@@ -42,6 +42,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-sql-driver/mysql"
+
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 	"github.com/golang/protobuf/proto"
 	"github.com/jmoiron/sqlx"
@@ -237,6 +239,9 @@ func (m *MariaDBPureStorage) SelectCellKey(userId, dataId string) (*models.CellK
 	if err := m.db.Get(&pb, `SELECT protobuf
 		FROM virgil_keys
 		WHERE user_id=? AND data_id=?`, userId, dataId); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrorNotFound
+		}
 		return nil, err
 	}
 	return m.parseCellKey(pb)
@@ -256,6 +261,13 @@ func (m *MariaDBPureStorage) InsertCellKey(key *models.CellKey) error {
 		data_id,
 		protobuf) 
 		VALUES (?, ?, ?);`, key.UserID, key.DataID, pb)
+
+	if err != nil {
+		var merr *mysql.MySQLError
+		if errors.As(err, &merr) && merr.Number == 1062 {
+			return ErrorAlreadyExists
+		}
+	}
 	return err
 }
 

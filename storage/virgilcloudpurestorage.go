@@ -118,6 +118,10 @@ func (v *VirgilCloudPureStorage) SelectCellKey(userId, dataId string) (*models.C
 		DataId: dataId,
 	})
 	if err != nil {
+		var httpErr *protos.HttpError
+		if errors.As(err, &httpErr) && httpErr.Code == 50004 {
+			return nil, ErrorNotFound
+		}
 		return nil, err
 	}
 	return v.Serializer.ParseCellKey(key)
@@ -301,7 +305,15 @@ func (v *VirgilCloudPureStorage) insertKey(key *models.CellKey, insert bool) err
 		return err
 	}
 	if insert {
-		return v.Client.InsertCellKey(ck)
+
+		err = v.Client.InsertCellKey(ck)
+		if err != nil {
+			var httpErr *protos.HttpError
+			if errors.As(err, &httpErr) && httpErr.Code == 50006 {
+				return ErrorAlreadyExists
+			}
+		}
+		return err
 	} else {
 		return v.Client.UpdateCellKey(ck)
 	}

@@ -299,7 +299,7 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 		if cpk, err = p.PureCrypto.ImportPublicKey(cellKey.CPK); err != nil {
 			return nil, err
 		}
-	} else { //TODO: IF NOT FOUND
+	} else if err == storage.ErrorNotFound {
 		var recipientList []crypto.PublicKey
 		recipientList = append(recipientList, publicKeys...)
 		var userIds []string
@@ -362,11 +362,21 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 		}
 
 		if err = p.Storage.InsertCellKey(cellKey); err != nil {
-			//TODO: IF already exists, select &reuse
-
-			return nil, err
+			if err == storage.ErrorAlreadyExists {
+				cellKey, err := p.Storage.SelectCellKey(userID, dataID)
+				if err != nil {
+					return nil, err
+				}
+				if cpk, err = p.PureCrypto.ImportPublicKey(cellKey.CPK); err != nil {
+					return nil, err
+				}
+			} else {
+				return nil, err
+			}
 		}
 		cpk = ckp.PublicKey()
+	} else {
+		return nil, err
 	}
 	return p.PureCrypto.EncryptData(plainText, p.Oskp, cpk)
 }
