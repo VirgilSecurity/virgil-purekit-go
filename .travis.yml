@@ -3,7 +3,7 @@ go:
 - stable
 - tip
 
-services: mariadb
+services: mysql
 
 os: linux
 
