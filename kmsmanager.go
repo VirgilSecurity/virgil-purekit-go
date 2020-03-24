@@ -39,9 +39,9 @@ package purekit
 import (
 	"fmt"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/clients"
-	"github.com/VirgilSecurity/virgil-purekit-go/models"
-	"github.com/VirgilSecurity/virgil-purekit-go/protos"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/clients"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/phe"
 )
 
@@ -104,7 +104,7 @@ func NewKmsManager(context *Context) (*KmsManager, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := mgr.PwdCurrentClient.SetKeys(priv, pub); err != nil {
+		if err = mgr.PwdCurrentClient.SetKeys(priv, pub); err != nil {
 			return nil, err
 		}
 

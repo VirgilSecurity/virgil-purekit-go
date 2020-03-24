@@ -37,7 +37,7 @@
 package storage
 
 import (
-	"github.com/VirgilSecurity/virgil-purekit-go/models"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
 )
 
 type PureStorage interface {

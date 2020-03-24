@@ -37,8 +37,8 @@
 package storage
 
 import (
-	"github.com/VirgilSecurity/virgil-purekit-go/models"
-	"github.com/VirgilSecurity/virgil-purekit-go/protos"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 	"google.golang.org/protobuf/proto"
 )

@@ -36,7 +36,7 @@
 
 package purekit
 
-import "github.com/VirgilSecurity/virgil-purekit-go/protos"
+import "github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 
 type DeserializedEncryptedGrant struct {
 	EncryptedGrant       *protos.EncryptedGrant

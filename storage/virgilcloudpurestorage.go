@@ -39,9 +39,9 @@ package storage
 import (
 	"errors"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/clients"
-	"github.com/VirgilSecurity/virgil-purekit-go/models"
-	"github.com/VirgilSecurity/virgil-purekit-go/protos"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/clients"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 )
 
 type VirgilCloudPureStorage struct {

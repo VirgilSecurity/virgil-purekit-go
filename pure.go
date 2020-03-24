@@ -47,10 +47,10 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/protos"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/models"
-	"github.com/VirgilSecurity/virgil-purekit-go/storage"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/storage"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 )
 
@@ -66,7 +66,7 @@ type Pure struct {
 }
 
 const (
-	DEFAULT_GRANT_TTL = time.Hour
+	DefaultGrantTTL = time.Hour
 )
 
 func NewPure(context *Context) (*Pure, error) {
@@ -98,14 +98,14 @@ func NewPure(context *Context) (*Pure, error) {
 	return p, nil
 }
 
-func (p *Pure) RegisterUser(userId, password string) error {
-	_, _, _, err := p.registerUserInternal(userId, password)
+func (p *Pure) RegisterUser(userID, password string) error {
+	_, _, _, err := p.registerUserInternal(userID, password)
 	return err
 }
 
-func (p *Pure) AuthenticateUser(userId, password string, sessionParams *SessionParameters) (*AuthResult, error) {
+func (p *Pure) AuthenticateUser(userID, password string, sessionParams *SessionParameters) (*AuthResult, error) {
 
-	user, err := p.Storage.SelectUser(userId)
+	user, err := p.Storage.SelectUser(userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "select failed")
 	}
@@ -123,6 +123,9 @@ func (p *Pure) AuthenticateUser(userId, password string, sessionParams *SessionP
 		return nil, err
 	}
 	ukp, err := p.PureCrypto.ImportPrivateKey(uskData)
+	if err != nil {
+		return nil, err
+	}
 	return p.authenticateUserInternal(user, ukp, phek, sessionParams)
 }
 
@@ -137,8 +140,8 @@ func (p *Pure) InvalidateEncryptedUserGrant(encryptedGrant string) error {
 	return p.Storage.DeleteGrantKey(deserializedGrant.EncryptedGrantHeader.UserId, deserializedGrant.EncryptedGrantHeader.KeyId)
 }
 
-func (p *Pure) CreateUserGrantAsAdmin(userId string, bupsk crypto.PrivateKey, ttl time.Duration) (*models.PureGrant, error) {
-	user, err := p.Storage.SelectUser(userId)
+func (p *Pure) CreateUserGrantAsAdmin(userID string, bupsk crypto.PrivateKey, ttl time.Duration) (*models.PureGrant, error) {
+	user, err := p.Storage.SelectUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +160,15 @@ func (p *Pure) CreateUserGrantAsAdmin(userId string, bupsk crypto.PrivateKey, tt
 
 	return &models.PureGrant{
 		UKP:            upk,
-		UserID:         userId,
+		UserID:         userID,
 		CreationDate:   creationDate,
 		ExpirationDate: expirationDate,
 	}, nil
 }
 
-func (p *Pure) RecoverUser(userId, newPassword string) error {
+func (p *Pure) RecoverUser(userID, newPassword string) error {
 
-	user, err := p.Storage.SelectUser(userId)
+	user, err := p.Storage.SelectUser(userID)
 	if err != nil {
 		return err
 	}
@@ -178,11 +181,14 @@ func (p *Pure) RecoverUser(userId, newPassword string) error {
 		return err
 	}
 	privateKeyData, err := p.PureCrypto.DecryptSymmetricWithNewNonce(user.EncryptedUsk, []byte{}, oldPhek)
+	if err != nil {
+		return err
+	}
 	return p.changeUserPasswordInternal(user, privateKeyData, newPassword)
 }
 
-func (p *Pure) DeleteUser(userId string) error {
-	return p.Storage.DeleteUser(userId, true)
+func (p *Pure) DeleteUser(userID string) error {
+	return p.Storage.DeleteUser(userID, true)
 }
 
 func (p *Pure) PerformRotation() (*RotationResults, error) {
@@ -198,15 +204,17 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 			return nil, err
 		}
 		var newRecords []*models.UserRecord
+		var newRecord []byte
+		var newWrap []byte
 		for _, user := range users {
 			if user.RecordVersion != p.CurrentVersion-1 {
 				return nil, errors.New("record version mismatch")
 			}
-			newRecord, err := p.PheManager.PerformRotation(user.PheRecord)
+			newRecord, err = p.PheManager.PerformRotation(user.PheRecord)
 			if err != nil {
 				return nil, err
 			}
-			newWrap, err := p.KmsManager.PerformPwdRotation(user.PasswordRecoveryWrap)
+			newWrap, err = p.KmsManager.PerformPwdRotation(user.PasswordRecoveryWrap)
 			if err != nil {
 				return nil, err
 			}
@@ -241,11 +249,12 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 			return nil, err
 		}
 		var updatedGrantKeys []*models.GrantKey
+		var newWrap []byte
 		for _, gk := range grantKeys {
 			if gk.RecordVersion != p.CurrentVersion-1 {
 				return nil, errors.New("grant version mismatch")
 			}
-			newWrap, err := p.KmsManager.PerformGrantRotation(gk.EncryptedGrantKeyWrap)
+			newWrap, err = p.KmsManager.PerformGrantRotation(gk.EncryptedGrantKeyWrap)
 			if err != nil {
 				return nil, err
 			}
@@ -278,14 +287,14 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 	}, nil
 }
 
-func (p *Pure) Encrypt(userId, dataId string, plaintext []byte) ([]byte, error) {
-	return p.encrypt(userId, dataId, nil, nil, nil, plaintext)
+func (p *Pure) Encrypt(userID, dataID string, plaintext []byte) ([]byte, error) {
+	return p.encrypt(userID, dataID, nil, nil, nil, plaintext)
 }
 
-func (p *Pure) encrypt(userId, dataId string, otherUserIds []string, roleNames []string, publicKeys []crypto.PublicKey, plainText []byte) ([]byte, error) {
+func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames []string, publicKeys []crypto.PublicKey, plainText []byte) ([]byte, error) {
 
 	var cpk crypto.PublicKey
-	cellKey, err := p.Storage.SelectCellKey(userId, dataId)
+	cellKey, err := p.Storage.SelectCellKey(userID, dataID)
 	if err == nil {
 		if cpk, err = p.PureCrypto.ImportPublicKey(cellKey.CPK); err != nil {
 			return nil, err
@@ -294,15 +303,16 @@ func (p *Pure) encrypt(userId, dataId string, otherUserIds []string, roleNames [
 		var recipientList []crypto.PublicKey
 		recipientList = append(recipientList, publicKeys...)
 		var userIds []string
-		userIds = append(userIds, otherUserIds...)
-		userIds = append(userIds, userId)
+		userIds = append(userIds, otherUserIDs...)
+		userIds = append(userIds, userID)
 
 		userRecords, err := p.Storage.SelectUsers(userIds...)
 		if err != nil {
 			return nil, err
 		}
+		var otherUpk crypto.PublicKey
 		for _, ur := range userRecords {
-			otherUpk, err := p.PureCrypto.ImportPublicKey(ur.UPK)
+			otherUpk, err = p.PureCrypto.ImportPublicKey(ur.UPK)
 			if err != nil {
 				return nil, err
 			}
@@ -313,17 +323,17 @@ func (p *Pure) encrypt(userId, dataId string, otherUserIds []string, roleNames [
 		if err != nil {
 			return nil, err
 		}
-
+		var rpk crypto.PublicKey
 		for _, role := range roles {
-			rpk, err := p.PureCrypto.ImportPublicKey(role.RPK)
+			rpk, err = p.PureCrypto.ImportPublicKey(role.RPK)
 			if err != nil {
 				return nil, err
 			}
 			recipientList = append(recipientList, rpk)
 		}
 
-		if p.ExternalPublicKeys[dataId] != nil {
-			recipientList = append(recipientList, p.ExternalPublicKeys[dataId]...)
+		if p.ExternalPublicKeys[dataID] != nil {
+			recipientList = append(recipientList, p.ExternalPublicKeys[dataID]...)
 		}
 
 		ckp, err := p.PureCrypto.GenerateCellKey()
@@ -344,8 +354,8 @@ func (p *Pure) encrypt(userId, dataId string, otherUserIds []string, roleNames [
 		}
 
 		cellKey := &models.CellKey{
-			UserID:           userId,
-			DataID:           dataId,
+			UserID:           userID,
+			DataID:           dataID,
 			CPK:              cpkData,
 			EncryptedCskCms:  encryptedCskData.Cms,
 			EncryptedCskBody: encryptedCskData.Body,
@@ -361,12 +371,12 @@ func (p *Pure) encrypt(userId, dataId string, otherUserIds []string, roleNames [
 	return p.PureCrypto.EncryptData(plainText, p.Oskp, cpk)
 }
 
-func (p *Pure) Decrypt(grant *models.PureGrant, ownerUserId, dataId string, ciphertext []byte) ([]byte, error) {
-	userId := ownerUserId
-	if userId == "" {
-		userId = grant.UserID
+func (p *Pure) Decrypt(grant *models.PureGrant, ownerUserID, dataID string, ciphertext []byte) ([]byte, error) {
+	userID := ownerUserID
+	if userID == "" {
+		userID = grant.UserID
 	}
-	cellKey, err := p.Storage.SelectCellKey(userId, dataId)
+	cellKey, err := p.Storage.SelectCellKey(userID, dataID)
 	if err != nil {
 		return nil, err
 	}
@@ -377,28 +387,32 @@ func (p *Pure) Decrypt(grant *models.PureGrant, ownerUserId, dataId string, ciph
 
 	csk, err := p.PureCrypto.DecryptCellKey(pureCryptoData, grant.UKP, p.Oskp.PublicKey())
 
+	var roleAssignments []*models.RoleAssignment
+	var publicKeysIds [][]byte
 	if err != nil {
 		fErr, ok := err.(*foundation.FoundationError)
 		if !ok || fErr.Code != foundation.FoundationErrorErrorKeyRecipientIsNotFound {
 			return nil, err
 		}
 
-		roleAssignments, err := p.Storage.SelectRoleAssignments(grant.UserID)
+		roleAssignments, err = p.Storage.SelectRoleAssignments(grant.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		publicKeysIds, err := p.PureCrypto.ExtractPublicKeysIdsFromCellKey(cellKey.EncryptedCskCms)
+		publicKeysIds, err = p.PureCrypto.ExtractPublicKeysIdsFromCellKey(cellKey.EncryptedCskCms)
 		if err != nil {
 			return nil, err
 		}
+		var rskData []byte
+		var rkp crypto.PrivateKey
 		for _, ra := range roleAssignments {
 			if contains(publicKeysIds, ra.PublicKeyID) {
-				rskData, err := p.PureCrypto.DecryptRolePrivateKey(ra.EncryptedRsk, grant.UKP, p.Oskp.PublicKey())
+				rskData, err = p.PureCrypto.DecryptRolePrivateKey(ra.EncryptedRsk, grant.UKP, p.Oskp.PublicKey())
 				if err != nil {
 					return nil, err
 				}
-				rkp, err := p.PureCrypto.ImportPrivateKey(rskData)
+				rkp, err = p.PureCrypto.ImportPrivateKey(rskData)
 				if err != nil {
 					return nil, err
 				}
@@ -420,12 +434,12 @@ func (p *Pure) Decrypt(grant *models.PureGrant, ownerUserId, dataId string, ciph
 	return p.PureCrypto.DecryptData(ciphertext, ckp, p.Oskp.PublicKey())
 }
 
-func (p *Pure) Share(grant *models.PureGrant, dataId string, otherUserIds []string, publicKeys []crypto.PublicKey) error {
+func (p *Pure) Share(grant *models.PureGrant, dataID string, otherUserIds []string, publicKeys []crypto.PublicKey) error {
 	keys, err := p.keysWithOthers(publicKeys, otherUserIds)
 	if err != nil {
 		return err
 	}
-	cellKey, err := p.Storage.SelectCellKey(grant.UserID, dataId)
+	cellKey, err := p.Storage.SelectCellKey(grant.UserID, dataID)
 	if err != nil {
 		return err
 	}
@@ -437,12 +451,12 @@ func (p *Pure) Share(grant *models.PureGrant, dataId string, otherUserIds []stri
 	return p.Storage.UpdateCellKey(cellKey)
 }
 
-func (p *Pure) Unshare(ownerUserId, dataId string, otherUserIds []string, publicKeys []crypto.PublicKey) error {
-	keys, err := p.keysWithOthers(publicKeys, otherUserIds)
+func (p *Pure) Unshare(ownerUserID, dataID string, otherUserIDs []string, publicKeys []crypto.PublicKey) error {
+	keys, err := p.keysWithOthers(publicKeys, otherUserIDs)
 	if err != nil {
 		return err
 	}
-	cellKey, err := p.Storage.SelectCellKey(ownerUserId, dataId)
+	cellKey, err := p.Storage.SelectCellKey(ownerUserID, dataID)
 	if err != nil {
 		return err
 	}
@@ -495,7 +509,7 @@ func (p *Pure) UnassignRole(roleName string, userIds ...string) error {
 	return p.Storage.DeleteRoleAssignments(roleName, userIds...)
 }
 
-func (p *Pure) AssignRole(roleName string, publicKeyId []byte, rskData []byte, userIds ...string) error {
+func (p *Pure) AssignRole(roleName string, publicKeyID []byte, rskData []byte, userIds ...string) error {
 	users, err := p.Storage.SelectUsers(userIds...)
 	if err != nil {
 		return err
@@ -513,7 +527,7 @@ func (p *Pure) AssignRole(roleName string, publicKeyId []byte, rskData []byte, u
 		roleAssignment := &models.RoleAssignment{
 			RoleName:     roleName,
 			UserID:       u.UserID,
-			PublicKeyID:  publicKeyId,
+			PublicKeyID:  publicKeyID,
 			EncryptedRsk: encryptedRsk,
 		}
 		roleAssignments = append(roleAssignments, roleAssignment)
@@ -521,7 +535,7 @@ func (p *Pure) AssignRole(roleName string, publicKeyId []byte, rskData []byte, u
 	return p.Storage.InsertRoleAssignments(roleAssignments...)
 }
 
-func (p *Pure) ShareToRoles(grant *models.PureGrant, dataId string, roleNames []string) error {
+func (p *Pure) ShareToRoles(grant *models.PureGrant, dataID string, roleNames []string) error {
 	roles, err := p.Storage.SelectRoles(roleNames...)
 	if err != nil {
 		return err
@@ -534,11 +548,11 @@ func (p *Pure) ShareToRoles(grant *models.PureGrant, dataId string, roleNames []
 		}
 		roleKeys = append(roleKeys, pk)
 	}
-	return p.Share(grant, dataId, nil, roleKeys)
+	return p.Share(grant, dataID, nil, roleKeys)
 }
 
-func (p *Pure) ShareToRole(grant *models.PureGrant, dataId string, roleName string) error {
-	return p.ShareToRoles(grant, dataId, []string{roleName})
+func (p *Pure) ShareToRole(grant *models.PureGrant, dataID string, roleName string) error {
+	return p.ShareToRoles(grant, dataID, []string{roleName})
 }
 
 func (p *Pure) keysWithOthers(publicKeys []crypto.PublicKey, otherUserIds []string) ([]crypto.PublicKey, error) {
@@ -630,8 +644,8 @@ func (p *Pure) DecryptGrantFromUser(encryptedGrant string) (*models.PureGrant, e
 	}, nil
 }
 
-func (p *Pure) ChangeUserPassword(userId, oldPassword, newPassword string) error {
-	user, err := p.Storage.SelectUser(userId)
+func (p *Pure) ChangeUserPassword(userID, oldPassword, newPassword string) error {
+	user, err := p.Storage.SelectUser(userID)
 	if err != nil {
 		return err
 	}
@@ -639,7 +653,7 @@ func (p *Pure) ChangeUserPassword(userId, oldPassword, newPassword string) error
 	if err != nil {
 		return err
 	}
-	oldPhek, err := p.PheManager.ComputePheKey(user, oldPassHash[:])
+	oldPhek, err := p.PheManager.ComputePheKey(user, oldPassHash)
 	if err != nil {
 		return err
 	}
@@ -662,7 +676,7 @@ func (p *Pure) ChangeUserPasswordWithGrant(grant *models.PureGrant, newPassword 
 	return p.changeUserPasswordInternal(user, sk, newPassword)
 }
 
-func (p *Pure) registerUserInternal(userId, password string) (*models.UserRecord, crypto.PrivateKey, []byte, error) {
+func (p *Pure) registerUserInternal(userID, password string) (*models.UserRecord, crypto.PrivateKey, []byte, error) {
 	passwordHash, err := p.PureCrypto.ComputePasswordHash(password)
 	if err != nil {
 		return nil, nil, nil, err
@@ -704,7 +718,7 @@ func (p *Pure) registerUserInternal(userId, password string) (*models.UserRecord
 	}
 
 	userRecord := &models.UserRecord{
-		UserID:               userId,
+		UserID:               userID,
 		PheRecord:            record,
 		RecordVersion:        p.CurrentVersion,
 		UPK:                  publicKey,
@@ -725,12 +739,12 @@ func (p *Pure) registerUserInternal(userId, password string) (*models.UserRecord
 func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.PrivateKey, phek []byte, sessionParams *SessionParameters) (*AuthResult, error) {
 
 	var ttl time.Duration
-	var sessionId string
+	var sessionID string
 	if sessionParams == nil {
-		ttl = DEFAULT_GRANT_TTL
+		ttl = DefaultGrantTTL
 	} else {
 		ttl = sessionParams.TTL
-		sessionId = sessionParams.SessionID
+		sessionID = sessionParams.SessionID
 	}
 
 	creationDate := time.Now()
@@ -739,7 +753,7 @@ func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.Pr
 	grant := &models.PureGrant{
 		UKP:            ukp,
 		UserID:         record.UserID,
-		SessionID:      sessionId,
+		SessionID:      sessionID,
 		CreationDate:   creationDate,
 		ExpirationDate: expirationDate,
 	}
@@ -748,15 +762,15 @@ func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.Pr
 	if err != nil {
 		return nil, err
 	}
-	keyId, err := p.PureCrypto.ComputeSymmetricKeyId(grantKeyRaw)
+	keyID, err := p.PureCrypto.ComputeSymmetricKeyId(grantKeyRaw)
 	if err != nil {
 		return nil, err
 	}
 
 	grantHeader := &protos.EncryptedGrantHeader{
 		UserId:         record.UserID,
-		SessionId:      sessionId,
-		KeyId:          keyId,
+		SessionId:      sessionID,
+		KeyId:          keyID,
 		CreationDate:   uint64(creationDate.Unix()),
 		ExpirationDate: uint64(expirationDate.Unix()),
 	}
@@ -772,7 +786,7 @@ func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.Pr
 
 	grantKey := &models.GrantKey{
 		UserID:                record.UserID,
-		KeyID:                 keyId,
+		KeyID:                 keyID,
 		RecordVersion:         p.CurrentVersion,
 		EncryptedGrantKeyWrap: grantWrap.Wrap,
 		EncryptedGrantKeyBlob: grantWrap.Blob,

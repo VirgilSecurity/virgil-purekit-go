@@ -37,16 +37,13 @@
 package purekit
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"testing"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/storage"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/storage"
 
 	"github.com/stretchr/testify/require"
 
@@ -123,7 +120,7 @@ func BuildContext(useUpdateToken, useNewKeys, useLocalStorage, skipClean bool, n
 		client.HTTPClient(&http.Client{
 			Transport: &DebugClient{Transport: http.DefaultTransport},
 		}))*/
-	return
+	return ctx, buppk, nmsData, err
 }
 
 func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
@@ -142,7 +139,7 @@ func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
 
 		res, err := p.AuthenticateUser(userName, password, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, res)
@@ -153,7 +150,7 @@ func TestPure_RegisterUser_AuthenticateUser(t *testing.T) {
 func TestPure_EncryptDecrypt(t *testing.T) {
 	userName := randomString()
 	password := randomString()
-	dataId := randomString()
+	dataID := randomString()
 	plaintext := randomString()
 
 	for st := 0; st < 2; st++ {
@@ -168,14 +165,14 @@ func TestPure_EncryptDecrypt(t *testing.T) {
 
 		res, err := p.AuthenticateUser(userName, password, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, res)
 
-		ciphertext, err := p.encrypt(userName, dataId, nil, nil, nil, []byte(plaintext))
+		ciphertext, err := p.encrypt(userName, dataID, nil, nil, nil, []byte(plaintext))
 		require.NoError(t, err)
-		decrypted, err := p.Decrypt(res.Grant, userName, dataId, ciphertext)
+		decrypted, err := p.Decrypt(res.Grant, userName, dataID, ciphertext)
 		require.NoError(t, err)
 		require.Equal(t, plaintext, string(decrypted))
 	}
@@ -202,7 +199,7 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 
 		res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, res1)
@@ -212,7 +209,7 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 
 		res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, res2)
@@ -238,7 +235,7 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 		require.Nil(t, decrypted2)
 
 		//test Admin
-		adminGrant, err := p.CreateUserGrantAsAdmin(userId1, buppk, DEFAULT_GRANT_TTL)
+		adminGrant, err := p.CreateUserGrantAsAdmin(userId1, buppk, DefaultGrantTTL)
 		require.NoError(t, err)
 		require.NotNil(t, adminGrant)
 		decryptedAdmin, err := p.Decrypt(adminGrant, "", dataId, ciphertext)
@@ -250,7 +247,7 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 
 		res3, err := p.AuthenticateUser(userId1, password3, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 
@@ -291,17 +288,17 @@ func TestPure_Roles(t *testing.T) {
 
 		res1, err := p.AuthenticateUser(userId1, password1, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 		res2, err := p.AuthenticateUser(userId2, password2, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 		res3, err := p.AuthenticateUser(userId3, password3, &SessionParameters{
 			SessionID: randomString(),
-			TTL:       DEFAULT_GRANT_TTL,
+			TTL:       DefaultGrantTTL,
 		})
 		require.NoError(t, err)
 
@@ -358,9 +355,9 @@ func TestPure_Roles(t *testing.T) {
 
 func TestRotate(t *testing.T) {
 
-	firstUserId := randomString()
+	firstUserID := randomString()
 	firstUserPassword := randomString()
-	dataId := randomString()
+	dataID := randomString()
 	text := []byte(randomString())
 
 	ctx, buppk, nms, err := BuildContext(false, false, true, false, nil, nil)
@@ -368,13 +365,13 @@ func TestRotate(t *testing.T) {
 	p, err := NewPure(ctx)
 	require.NoError(t, err)
 
-	require.NoError(t, p.RegisterUser(firstUserId, firstUserPassword))
+	require.NoError(t, p.RegisterUser(firstUserID, firstUserPassword))
 	for i := 0; i < 20; i++ {
-		userId, password := randomString(), randomString()
-		require.NoError(t, p.RegisterUser(userId, password))
+		userID, password := randomString(), randomString()
+		require.NoError(t, p.RegisterUser(userID, password))
 	}
 
-	authResult1, err := p.AuthenticateUser(firstUserId, firstUserPassword, nil)
+	authResult1, err := p.AuthenticateUser(firstUserID, firstUserPassword, nil)
 	require.NoError(t, err)
 	encryptedGrant1 := authResult1.EncryptedGrant
 
@@ -383,10 +380,10 @@ func TestRotate(t *testing.T) {
 	require.NoError(t, err)
 	p, err = NewPure(ctx)
 	require.NoError(t, err)
-	ciphertext, err := p.Encrypt(firstUserId, dataId, text)
+	ciphertext, err := p.Encrypt(firstUserID, dataID, text)
 	require.NoError(t, err)
 
-	authResult2, err := p.AuthenticateUser(firstUserId, firstUserPassword, nil)
+	authResult2, err := p.AuthenticateUser(firstUserID, firstUserPassword, nil)
 	require.NoError(t, err)
 	encryptedGrant2 := authResult2.EncryptedGrant
 
@@ -406,10 +403,10 @@ func TestRotate(t *testing.T) {
 	require.NoError(t, err)
 
 	//decrypt ciphertext with both grants
-	decrypted, err := p.Decrypt(pureGrant1, firstUserId, dataId, ciphertext)
+	decrypted, err := p.Decrypt(pureGrant1, firstUserID, dataID, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, decrypted, text)
-	decrypted, err = p.Decrypt(pureGrant2, firstUserId, dataId, ciphertext)
+	decrypted, err = p.Decrypt(pureGrant2, firstUserID, dataID, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, decrypted, text)
 
@@ -424,10 +421,10 @@ func TestRotate(t *testing.T) {
 	require.NoError(t, err)
 
 	//decrypt ciphertext with both grants
-	decrypted, err = p.Decrypt(pureGrant1, firstUserId, dataId, ciphertext)
+	decrypted, err = p.Decrypt(pureGrant1, firstUserID, dataID, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, decrypted, text)
-	decrypted, err = p.Decrypt(pureGrant2, firstUserId, dataId, ciphertext)
+	decrypted, err = p.Decrypt(pureGrant2, firstUserID, dataID, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, decrypted, text)
 }
@@ -439,7 +436,7 @@ func randomString() string {
 	return t
 }
 
-type DebugClient struct {
+/*type DebugClient struct {
 	Transport http.RoundTripper
 }
 
@@ -482,4 +479,4 @@ func (c *DebugClient) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	fmt.Println("")
 	return resp, nil
-}
+}*/

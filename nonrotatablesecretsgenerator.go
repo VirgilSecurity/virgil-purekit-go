@@ -43,10 +43,10 @@ import (
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/foundation"
 )
 
-const NONROTATABLE_MASTER_SECRET_LENGTH = 32
+const NonrotatableMasterSecretLength = 32
 
 func GenerateNonRotatableSecrets(c *crypto.Crypto, masterSecret []byte) (*NonRotatableSecrets, error) {
-	if len(masterSecret) != NONROTATABLE_MASTER_SECRET_LENGTH {
+	if len(masterSecret) != NonrotatableMasterSecretLength {
 		return nil, errors.New("invalid master secret length")
 	}
 	rng := foundation.NewKeyMaterialRng()

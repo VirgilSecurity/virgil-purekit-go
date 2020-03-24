@@ -40,7 +40,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/protos"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/errors"
 )

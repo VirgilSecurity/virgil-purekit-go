@@ -3,8 +3,10 @@ go:
 - stable
 - tip
 
-before_install:
-
+install:
+  - go mod download
 
 script:
-- go test -v ./...
+  - "go install github.com/golangci/golangci-lint/cmd/golangci-lint;
+    golangci-lint run;"
+  - "go test  -count 1 ./... ;"

@@ -41,17 +41,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/VirgilSecurity/virgil-purekit-go/clients"
-	"github.com/VirgilSecurity/virgil-purekit-go/storage"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/clients"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/storage"
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 	"github.com/pkg/errors"
 )
 
 const (
-	NMS_PREFIX        = "NM"
-	BUPPK_PREFIX      = "BU"
-	SECRET_KEY_PREFIX = "SK"
-	PUBLIC_KEY_PREFIX = "PK"
+	NmsPrefix       = "NM"
+	BuppkPrefix     = "BU"
+	SecretKeyPrefix = "SK"
+	PublicKeyPrefix = "PK"
 )
 
 // Context holds & validates protocol input parameters
@@ -84,7 +84,7 @@ func CreateContext(c *crypto.Crypto,
 	res := &Context{}
 	res.Crypto = c
 
-	nmsCred, err := ParseCredentials(NMS_PREFIX, nms, false, 1)
+	nmsCred, err := ParseCredentials(NmsPrefix, nms, false, 1)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid nms")
 	}
@@ -92,7 +92,7 @@ func CreateContext(c *crypto.Crypto,
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid nms")
 	}
-	buppkCreds, err := ParseCredentials(BUPPK_PREFIX, buppk, false, 1)
+	buppkCreds, err := ParseCredentials(BuppkPrefix, buppk, false, 1)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid Buppk")
 	}
@@ -100,11 +100,11 @@ func CreateContext(c *crypto.Crypto,
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid Buppk")
 	}
-	res.SecretKey, err = ParseCredentials(SECRET_KEY_PREFIX, secretKey, true, 3)
+	res.SecretKey, err = ParseCredentials(SecretKeyPrefix, secretKey, true, 3)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid secretKey")
 	}
-	res.PublicKey, err = ParseCredentials(PUBLIC_KEY_PREFIX, publicKey, true, 2)
+	res.PublicKey, err = ParseCredentials(PublicKeyPrefix, publicKey, true, 2)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid publicKey")
 	}

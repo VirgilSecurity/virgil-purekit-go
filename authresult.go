@@ -36,7 +36,7 @@
 
 package purekit
 
-import "github.com/VirgilSecurity/virgil-purekit-go/models"
+import "github.com/VirgilSecurity/virgil-purekit-go/v3/models"
 
 type AuthResult struct {
 	Grant          *models.PureGrant
