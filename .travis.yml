@@ -3,10 +3,17 @@ go:
 - stable
 - tip
 
+services: mariadb
+
+os: linux
+
+before_install:
+  - mysql -e 'CREATE DATABASE puretest;'
+
 install:
   - go mod download
 
 script:
-  - "go install github.com/golangci/golangci-lint/cmd/golangci-lint;
-    golangci-lint run;"
-  - "go test -mod=readonly -count 1 ./... ;"
+  - go install github.com/golangci/golangci-lint/cmd/golangci-lint;
+  - golangci-lint run;
+  - go test -mod=readonly -count 1 ./... ;
