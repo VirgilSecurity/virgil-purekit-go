@@ -8,7 +8,7 @@ services: mysql
 os: linux
 
 before_install:
-  - openssl aes-256-cbc -K $envkey -iv $enviv -in env.json.enc -out env.json -d
+  - openssl aes-256-cbc -K $envkey -iv $enviv -in testdata/env.json.enc -out testdata/env.json -d
   - mysql -e 'CREATE DATABASE puretest;'
 
 install:
@@ -17,4 +17,4 @@ install:
 script:
   - go install github.com/golangci/golangci-lint/cmd/golangci-lint;
   - golangci-lint run;
-  - go test -mod=readonly -count 1 ./... ;
+  - go test -test.v=1 -mod=readonly -count 1 ./... ;
