@@ -44,25 +44,25 @@ type PureStorage interface {
 	InsertUser(record *models.UserRecord) error
 	UpdateUser(record *models.UserRecord) error
 	UpdateUsers(records []*models.UserRecord, previousRecordVersion uint32) error
-	SelectUser(userId string) (*models.UserRecord, error)
-	SelectUsers(userIds ...string) ([]*models.UserRecord, error)
+	SelectUser(userID string) (*models.UserRecord, error)
+	SelectUsers(userIDs ...string) ([]*models.UserRecord, error)
 	SelectUsersByVersion(version uint32) ([]*models.UserRecord, error)
-	DeleteUser(userId string, cascade bool) error
-	SelectCellKey(userId, dataId string) (*models.CellKey, error)
+	DeleteUser(userID string, cascade bool) error
+	SelectCellKey(userID, dataID string) (*models.CellKey, error)
 	InsertCellKey(key *models.CellKey) error
 	UpdateCellKey(key *models.CellKey) error
-	DeleteCellKey(userId, dataId string) error
+	DeleteCellKey(userID, dataID string) error
 	InsertRole(role *models.Role) error
 	SelectRoles(roleNames ...string) ([]*models.Role, error)
 	InsertRoleAssignments(assignments ...*models.RoleAssignment) error
-	SelectRoleAssignments(userId string) ([]*models.RoleAssignment, error)
-	SelectRoleAssignment(roleName, userId string) (*models.RoleAssignment, error)
-	DeleteRoleAssignments(roleName string, userIds ...string) error
+	SelectRoleAssignments(userID string) ([]*models.RoleAssignment, error)
+	SelectRoleAssignment(roleName, userID string) (*models.RoleAssignment, error)
+	DeleteRoleAssignments(roleName string, userIDs ...string) error
 	InsertGrantKey(key *models.GrantKey) error
-	SelectGrantKey(userId string, keyId []byte) (*models.GrantKey, error)
+	SelectGrantKey(userID string, keyID []byte) (*models.GrantKey, error)
 	SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error)
 	UpdateGrantKeys(keys ...*models.GrantKey) error
-	DeleteGrantKey(userId string, keyId []byte) error
+	DeleteGrantKey(userID string, keyID []byte) error
 }
 
 type SerializerDependentStorage interface {

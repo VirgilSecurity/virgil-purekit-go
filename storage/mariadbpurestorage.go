@@ -106,6 +106,7 @@ func (m *MariaDBPureStorage) UpdateUsers(records []*models.UserRecord, previousR
 	if err != nil {
 		return err
 	}
+	//nolint: errcheck
 	defer tx.Rollback()
 	for _, record := range records {
 		rec, err := m.Serializer.SerializeUserRecord(record)
@@ -134,33 +135,35 @@ func (m *MariaDBPureStorage) parseUser(bin []byte) (*models.UserRecord, error) {
 	return m.Serializer.ParseUserRecord(rec)
 }
 
-func (m *MariaDBPureStorage) SelectUser(userId string) (*models.UserRecord, error) {
+func (m *MariaDBPureStorage) SelectUser(userID string) (*models.UserRecord, error) {
 	var pb []byte
 	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_users 
-		WHERE user_id=?`, userId); err != nil {
+		WHERE user_id=?`, userID); err != nil {
 		return nil, err
 	}
 	return m.parseUser(pb)
 }
 
-func (m *MariaDBPureStorage) SelectUsers(userIds ...string) ([]*models.UserRecord, error) {
+//gosec
+func (m *MariaDBPureStorage) SelectUsers(userIDs ...string) ([]*models.UserRecord, error) {
 
-	if len(userIds) == 0 {
+	if len(userIDs) == 0 {
 		return []*models.UserRecord{}, nil
 	}
 
-	ids := make([]interface{}, len(userIds))
+	ids := make([]interface{}, len(userIDs))
 	for i := range ids {
-		ids[i] = userIds[i]
+		ids[i] = userIDs[i]
 	}
-
+	//nolint: gosec
 	rows, err := m.db.Query(`SELECT protobuf 
 		FROM virgil_users 
-		WHERE user_id IN (?`+strings.Repeat(",?", len(userIds)-1)+")", ids...)
+		WHERE user_id IN (?`+strings.Repeat(",?", len(userIDs)-1)+")", ids...)
 	if err != nil {
 		return nil, err
 	}
+	//nolint: errcheck
 	defer rows.Close()
 
 	var res []*models.UserRecord
@@ -175,10 +178,10 @@ func (m *MariaDBPureStorage) SelectUsers(userIds ...string) ([]*models.UserRecor
 		}
 		res = append(res, rec)
 	}
-	if len(res) != len(userIds) {
+	if len(res) != len(userIDs) {
 		return nil, errors.New("user ids mismatch")
 	}
-	return res, nil
+	return res, rows.Err()
 }
 func (m *MariaDBPureStorage) SelectUsersByVersion(version uint32) ([]*models.UserRecord, error) {
 
@@ -189,6 +192,7 @@ func (m *MariaDBPureStorage) SelectUsersByVersion(version uint32) ([]*models.Use
 	if err != nil {
 		return nil, err
 	}
+	//nolint: errcheck
 	defer rows.Close()
 
 	var res []*models.UserRecord
@@ -206,14 +210,14 @@ func (m *MariaDBPureStorage) SelectUsersByVersion(version uint32) ([]*models.Use
 		}
 		res = append(res, rec)
 	}
-	return res, nil
+	return res, rows.Err()
 }
 
-func (m *MariaDBPureStorage) DeleteUser(userId string, cascade bool) error {
+func (m *MariaDBPureStorage) DeleteUser(userID string, cascade bool) error {
 	if !cascade {
 		return errors.New("unsupported")
 	}
-	res, err := m.db.Exec(`DELETE FROM virgil_users WHERE user_id = ?;`, userId)
+	res, err := m.db.Exec(`DELETE FROM virgil_users WHERE user_id = ?;`, userID)
 	if err != nil {
 		return err
 	}
@@ -233,11 +237,11 @@ func (m *MariaDBPureStorage) parseCellKey(bin []byte) (*models.CellKey, error) {
 	return m.Serializer.ParseCellKey(rec)
 }
 
-func (m *MariaDBPureStorage) SelectCellKey(userId, dataId string) (*models.CellKey, error) {
+func (m *MariaDBPureStorage) SelectCellKey(userID, dataID string) (*models.CellKey, error) {
 	var pb []byte
 	if err := m.db.Get(&pb, `SELECT protobuf
 		FROM virgil_keys
-		WHERE user_id=? AND data_id=?`, userId, dataId); err != nil {
+		WHERE user_id=? AND data_id=?`, userID, dataID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrorNotFound
 		}
@@ -285,8 +289,8 @@ func (m *MariaDBPureStorage) UpdateCellKey(key *models.CellKey) error {
 	return err
 }
 
-func (m *MariaDBPureStorage) DeleteCellKey(userId, dataId string) error {
-	res, err := m.db.Exec(`DELETE FROM virgil_keys WHERE user_id = ? AND data_id = ?;`, userId, dataId)
+func (m *MariaDBPureStorage) DeleteCellKey(userID, dataID string) error {
+	res, err := m.db.Exec(`DELETE FROM virgil_keys WHERE user_id = ? AND data_id = ?;`, userID, dataID)
 	if err != nil {
 		return err
 	}
@@ -332,13 +336,14 @@ func (m *MariaDBPureStorage) SelectRoles(roleNames ...string) ([]*models.Role, e
 	for i := range names {
 		names[i] = roleNames[i]
 	}
-
+	//nolint: gosec
 	rows, err := m.db.Query(`SELECT protobuf 
 		FROM virgil_roles 
 		WHERE role_name IN (?`+strings.Repeat(",?", len(roleNames)-1)+")", names...)
 	if err != nil {
 		return nil, err
 	}
+	//nolint: errcheck
 	defer rows.Close()
 
 	var res []*models.Role
@@ -356,7 +361,7 @@ func (m *MariaDBPureStorage) SelectRoles(roleNames ...string) ([]*models.Role, e
 	if len(res) != len(roleNames) {
 		return nil, errors.New("role names mismatch")
 	}
-	return res, nil
+	return res, rows.Err()
 }
 
 func (m *MariaDBPureStorage) InsertRoleAssignments(assignments ...*models.RoleAssignment) error {
@@ -364,6 +369,7 @@ func (m *MariaDBPureStorage) InsertRoleAssignments(assignments ...*models.RoleAs
 	if err != nil {
 		return err
 	}
+	//nolint: errcheck
 	defer tx.Rollback()
 	for _, ra := range assignments {
 
@@ -395,13 +401,14 @@ func (m *MariaDBPureStorage) parseRoleAssignment(bin []byte) (*models.RoleAssign
 	return m.Serializer.ParseRoleAssignment(ra)
 }
 
-func (m *MariaDBPureStorage) SelectRoleAssignments(userId string) ([]*models.RoleAssignment, error) {
+func (m *MariaDBPureStorage) SelectRoleAssignments(userID string) ([]*models.RoleAssignment, error) {
 	rows, err := m.db.Query(`SELECT protobuf 
 		FROM virgil_role_assignments 
-		WHERE user_id=?;`, userId)
+		WHERE user_id=?;`, userID)
 	if err != nil {
 		return nil, err
 	}
+	//nolint: errcheck
 	defer rows.Close()
 
 	var res []*models.RoleAssignment
@@ -414,31 +421,34 @@ func (m *MariaDBPureStorage) SelectRoleAssignments(userId string) ([]*models.Rol
 		if err != nil {
 			return nil, err
 		}
-		if rec.UserID != userId {
+		if rec.UserID != userID {
 			return nil, errors.New("user id mismatch")
 		}
 		res = append(res, rec)
 	}
-	return res, nil
+	return res, rows.Err()
 }
 
-func (m *MariaDBPureStorage) SelectRoleAssignment(roleName, userId string) (*models.RoleAssignment, error) {
+func (m *MariaDBPureStorage) SelectRoleAssignment(roleName, userID string) (*models.RoleAssignment, error) {
 	var pb []byte
 	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_role_assignments 
-		WHERE user_id=? AND role_name=?;`, userId, roleName); err != nil {
+		WHERE user_id=? AND role_name=?;`, userID, roleName); err != nil {
 		return nil, err
 	}
 	return m.parseRoleAssignment(pb)
 }
 
-func (m *MariaDBPureStorage) DeleteRoleAssignments(roleName string, userIds ...string) error {
-	args := make([]interface{}, len(userIds)+1)
+func (m *MariaDBPureStorage) DeleteRoleAssignments(roleName string, userIDs ...string) error {
+	args := make([]interface{}, len(userIDs)+1)
 	args[0] = roleName
-	for i := 0; i < len(userIds); i++ {
-		args[i+1] = userIds[i]
+	for i := 0; i < len(userIDs); i++ {
+		args[i+1] = userIDs[i]
 	}
-	res, err := m.db.Exec(`DELETE FROM virgil_role_assignments WHERE role_name=? AND user_id IN (?`+strings.Repeat(",?", len(userIds)-1)+")", args...)
+	//nolint: gosec
+	res, err := m.db.Exec(`
+		DELETE FROM virgil_role_assignments 
+		WHERE role_name=? AND user_id IN (?`+strings.Repeat(",?", len(userIDs)-1)+")", args...)
 	if err != nil {
 		return err
 	}
@@ -446,8 +456,8 @@ func (m *MariaDBPureStorage) DeleteRoleAssignments(roleName string, userIds ...s
 	if err != nil {
 		return err
 	}
-	if rows != int64(len(userIds)) {
-		return errors.New("userIds mismatch")
+	if rows != int64(len(userIDs)) {
+		return errors.New("userIDs mismatch")
 	}
 	return nil
 }
@@ -479,11 +489,11 @@ func (m *MariaDBPureStorage) parseGrantKey(bin []byte) (*models.GrantKey, error)
 	return m.Serializer.ParseGrantKey(gk)
 }
 
-func (m *MariaDBPureStorage) SelectGrantKey(userId string, keyId []byte) (*models.GrantKey, error) {
+func (m *MariaDBPureStorage) SelectGrantKey(userID string, keyID []byte) (*models.GrantKey, error) {
 	var pb []byte
 	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_grant_keys 
-		WHERE user_id=? AND key_id=?;`, userId, keyId); err != nil {
+		WHERE user_id=? AND key_id=?;`, userID, keyID); err != nil {
 		return nil, err
 	}
 	return m.parseGrantKey(pb)
@@ -497,6 +507,7 @@ func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.Gr
 	if err != nil {
 		return nil, err
 	}
+	//nolint: errcheck
 	defer rows.Close()
 
 	var res []*models.GrantKey
@@ -511,7 +522,7 @@ func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.Gr
 		}
 		res = append(res, rec)
 	}
-	return res, nil
+	return res, rows.Err()
 }
 
 func (m *MariaDBPureStorage) UpdateGrantKeys(keys ...*models.GrantKey) error {
@@ -519,6 +530,7 @@ func (m *MariaDBPureStorage) UpdateGrantKeys(keys ...*models.GrantKey) error {
 	if err != nil {
 		return err
 	}
+	//nolint: errcheck
 	defer tx.Rollback()
 	for _, grantKey := range keys {
 		rec, err := m.Serializer.SerializeGrantKey(grantKey)
@@ -539,8 +551,8 @@ func (m *MariaDBPureStorage) UpdateGrantKeys(keys ...*models.GrantKey) error {
 	return tx.Commit()
 }
 
-func (m *MariaDBPureStorage) DeleteGrantKey(userId string, keyId []byte) error {
-	res, err := m.db.Exec(`DELETE FROM virgil_grant_keys WHERE user_id = ? AND key_id = ?;`, userId, keyId)
+func (m *MariaDBPureStorage) DeleteGrantKey(userID string, keyID []byte) error {
+	res, err := m.db.Exec(`DELETE FROM virgil_grant_keys WHERE user_id = ? AND key_id = ?;`, userID, keyID)
 	if err != nil {
 		return err
 	}
@@ -549,7 +561,7 @@ func (m *MariaDBPureStorage) DeleteGrantKey(userId string, keyId []byte) error {
 		return err
 	}
 	if rows != 1 {
-		return errors.New("userId or keyId mismatch")
+		return errors.New("userID or keyID mismatch")
 	}
 	return nil
 }

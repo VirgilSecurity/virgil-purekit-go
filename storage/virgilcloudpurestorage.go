@@ -66,38 +66,38 @@ func (v *VirgilCloudPureStorage) UpdateUsers(records []*models.UserRecord, previ
 		"Virgil Cloud storage, rotation happens on the Virgil side")
 }
 
-func (v *VirgilCloudPureStorage) SelectUser(userId string) (*models.UserRecord, error) {
+func (v *VirgilCloudPureStorage) SelectUser(userID string) (*models.UserRecord, error) {
 
-	rec, err := v.Client.GetUser(&protos.UserIdRequest{UserId: userId})
+	rec, err := v.Client.GetUser(&protos.UserIdRequest{UserId: userID})
 	if err != nil {
 		return nil, err
 	}
 	return v.Serializer.ParseUserRecord(rec)
 }
 
-func (v *VirgilCloudPureStorage) SelectUsers(userIds ...string) ([]*models.UserRecord, error) {
+func (v *VirgilCloudPureStorage) SelectUsers(userIDs ...string) ([]*models.UserRecord, error) {
 
-	if len(userIds) == 0 {
+	if len(userIDs) == 0 {
 		return []*models.UserRecord{}, nil
 	}
 
-	users, err := v.Client.GetUsers(userIds...)
+	users, err := v.Client.GetUsers(userIDs...)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(users.UserRecords) != len(userIds) {
+	if len(users.UserRecords) != len(userIDs) {
 		return nil, errors.New("records and ids number mismatch")
 	}
 
-	recs := make([]*models.UserRecord, 0, len(userIds))
+	recs := make([]*models.UserRecord, 0, len(userIDs))
 	for _, r := range users.UserRecords {
 		rec, err := v.Serializer.ParseUserRecord(r)
 		if err != nil {
 			return nil, err
 		}
-		if !contains(userIds, rec.UserID) {
-			return nil, errors.New("returned user record userId mismatch")
+		if !contains(userIDs, rec.UserID) {
+			return nil, errors.New("returned user record userID mismatch")
 		}
 		recs = append(recs, rec)
 	}
@@ -108,14 +108,14 @@ func (v *VirgilCloudPureStorage) SelectUsersByVersion(version uint32) ([]*models
 		"Virgil Cloud storage, rotation happens on the Virgil side")
 }
 
-func (v *VirgilCloudPureStorage) DeleteUser(userId string, cascade bool) error {
-	return v.Client.DeleteUser(&protos.UserIdRequest{UserId: userId}, cascade)
+func (v *VirgilCloudPureStorage) DeleteUser(userID string, cascade bool) error {
+	return v.Client.DeleteUser(&protos.UserIdRequest{UserId: userID}, cascade)
 }
 
-func (v *VirgilCloudPureStorage) SelectCellKey(userId, dataId string) (*models.CellKey, error) {
+func (v *VirgilCloudPureStorage) SelectCellKey(userID, dataID string) (*models.CellKey, error) {
 	key, err := v.Client.GetCellKey(&protos.UserIdAndDataIdRequest{
-		UserId: userId,
-		DataId: dataId,
+		UserId: userID,
+		DataId: dataID,
 	})
 	if err != nil {
 		var httpErr *protos.HttpError
@@ -135,10 +135,10 @@ func (v *VirgilCloudPureStorage) UpdateCellKey(key *models.CellKey) error {
 	return v.insertKey(key, false)
 }
 
-func (v *VirgilCloudPureStorage) DeleteCellKey(userId, dataId string) error {
+func (v *VirgilCloudPureStorage) DeleteCellKey(userID, dataID string) error {
 	return v.Client.DeleteCellKey(&protos.UserIdAndDataIdRequest{
-		UserId: userId,
-		DataId: dataId,
+		UserId: userID,
+		DataId: dataID,
 	})
 }
 
@@ -197,9 +197,9 @@ func (v *VirgilCloudPureStorage) InsertRoleAssignments(assignments ...*models.Ro
 	return v.Client.InsertRoleAssignments(req)
 }
 
-func (v *VirgilCloudPureStorage) SelectRoleAssignments(userId string) ([]*models.RoleAssignment, error) {
+func (v *VirgilCloudPureStorage) SelectRoleAssignments(userID string) ([]*models.RoleAssignment, error) {
 
-	req := &protos.GetRoleAssignments{UserId: userId}
+	req := &protos.GetRoleAssignments{UserId: userID}
 
 	ras, err := v.Client.GetRoleAssignments(req)
 	if err != nil {
@@ -216,10 +216,10 @@ func (v *VirgilCloudPureStorage) SelectRoleAssignments(userId string) ([]*models
 	return mdls, nil
 }
 
-func (v *VirgilCloudPureStorage) SelectRoleAssignment(roleName, userId string) (*models.RoleAssignment, error) {
+func (v *VirgilCloudPureStorage) SelectRoleAssignment(roleName, userID string) (*models.RoleAssignment, error) {
 
 	req := &protos.GetRoleAssignment{
-		UserId:   userId,
+		UserId:   userID,
 		RoleName: roleName,
 	}
 
@@ -230,14 +230,14 @@ func (v *VirgilCloudPureStorage) SelectRoleAssignment(roleName, userId string) (
 	return v.Serializer.ParseRoleAssignment(ra)
 }
 
-func (v *VirgilCloudPureStorage) DeleteRoleAssignments(roleName string, userIds ...string) error {
+func (v *VirgilCloudPureStorage) DeleteRoleAssignments(roleName string, userIDs ...string) error {
 
-	if len(userIds) == 0 {
+	if len(userIDs) == 0 {
 		return nil
 	}
 	req := &protos.DeleteRoleAssignments{
 		RoleName: roleName,
-		UserIds:  userIds,
+		UserIds:  userIDs,
 	}
 	return v.Client.DeleteRoleAssignments(req)
 }
@@ -251,11 +251,11 @@ func (v *VirgilCloudPureStorage) InsertGrantKey(key *models.GrantKey) error {
 	return v.Client.InsertGrantKey(req)
 }
 
-func (v *VirgilCloudPureStorage) SelectGrantKey(userId string, keyId []byte) (*models.GrantKey, error) {
+func (v *VirgilCloudPureStorage) SelectGrantKey(userID string, keyID []byte) (*models.GrantKey, error) {
 
 	req := &protos.GrantKeyDescriptor{
-		UserId: userId,
-		KeyId:  keyId,
+		UserId: userID,
+		KeyId:  keyID,
 	}
 
 	gk, err := v.Client.GetGrantKey(req)
@@ -276,11 +276,11 @@ func (v *VirgilCloudPureStorage) UpdateGrantKeys(keys ...*models.GrantKey) error
 		"Virgil Cloud storage, rotation happens on the Virgil side")
 }
 
-func (v *VirgilCloudPureStorage) DeleteGrantKey(userId string, keyId []byte) error {
+func (v *VirgilCloudPureStorage) DeleteGrantKey(userID string, keyID []byte) error {
 
 	req := &protos.GrantKeyDescriptor{
-		UserId: userId,
-		KeyId:  keyId,
+		UserId: userID,
+		KeyId:  keyID,
 	}
 	return v.Client.DeleteGrantKey(req)
 }
@@ -305,7 +305,6 @@ func (v *VirgilCloudPureStorage) insertKey(key *models.CellKey, insert bool) err
 		return err
 	}
 	if insert {
-
 		err = v.Client.InsertCellKey(ck)
 		if err != nil {
 			var httpErr *protos.HttpError
@@ -314,9 +313,8 @@ func (v *VirgilCloudPureStorage) insertKey(key *models.CellKey, insert bool) err
 			}
 		}
 		return err
-	} else {
-		return v.Client.UpdateCellKey(ck)
 	}
+	return v.Client.UpdateCellKey(ck)
 }
 
 func contains(a []string, x string) bool {

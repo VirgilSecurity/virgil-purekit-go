@@ -49,17 +49,17 @@ type ModelSerializer struct {
 }
 
 const (
-	CURRENT_USER_VERSION                   = 1
-	CURRENT_USER_SIGNED_VERSION            = 1
-	CURRENT_CELL_KEY_VERSION               = 1
-	CURRENT_CELL_KEY_SIGNED_VERSION        = 1
-	CURRENT_ROLE_VERSION                   = 1
-	CURRENT_ROLE_SIGNED_VERSION            = 1
-	CURRENT_ROLE_ASSIGNMENT_VERSION        = 1
-	CURRENT_ROLE_ASSIGNMENT_SIGNED_VERSION = 1
-	CURRENT_GRANT_KEY_VERSION              = 1
-	CURRENT_GRANT_KEY_SIGNED_VERSION       = 1
-	CURRENT_ENCRYPTED_GRANT_VERSION        = 1
+	CurrentUserVersion                 = 1
+	CurrentUserSignedVersion           = 1
+	CurrentCellKeyVersion              = 1
+	CurrentCellKeySignedVersion        = 1
+	CurrentRoleVersion                 = 1
+	CurrentRoleSignedVersion           = 1
+	CurrentRoleAssignmentVersion       = 1
+	CurrentRoleAssignmentSignedVersion = 1
+	CurrentGrantKeyVersion             = 1
+	CurrentGrantKeySignedVersion       = 1
+	CurrentEncryptedGrantVersion       = 1
 )
 
 func (m *ModelSerializer) GenerateSignature(data []byte) ([]byte, error) {
@@ -78,7 +78,7 @@ func (m *ModelSerializer) SerializeUserRecord(rec *models.UserRecord) (*protos.U
 	}
 
 	urs := &protos.UserRecordSigned{
-		Version:              CURRENT_USER_SIGNED_VERSION,
+		Version:              CurrentUserSignedVersion,
 		UserId:               rec.UserID,
 		PheRecordNs:          enRec.Ns,
 		PheRecordNc:          enRec.Nc,
@@ -98,7 +98,7 @@ func (m *ModelSerializer) SerializeUserRecord(rec *models.UserRecord) (*protos.U
 		return nil, err
 	}
 	userRecord := &protos.UserRecord{
-		Version:              CURRENT_USER_VERSION,
+		Version:              CurrentUserVersion,
 		UserRecordSigned:     userRecordSigned,
 		Signature:            signature,
 		PheRecordT0:          enRec.T0,
@@ -149,7 +149,7 @@ func (m *ModelSerializer) ParseUserRecord(rec *protos.UserRecord) (*models.UserR
 func (m *ModelSerializer) SerializeCellKey(key *models.CellKey) (*protos.CellKey, error) {
 
 	cks := &protos.CellKeySigned{
-		Version:          CURRENT_CELL_KEY_SIGNED_VERSION,
+		Version:          CurrentCellKeySignedVersion,
 		UserId:           key.UserID,
 		DataId:           key.DataID,
 		Cpk:              key.CPK,
@@ -168,7 +168,7 @@ func (m *ModelSerializer) SerializeCellKey(key *models.CellKey) (*protos.CellKey
 	}
 
 	ck := &protos.CellKey{
-		Version:       CURRENT_CELL_KEY_VERSION,
+		Version:       CurrentCellKeyVersion,
 		CellKeySigned: data,
 		Signature:     signature,
 	}
@@ -200,7 +200,7 @@ func (m *ModelSerializer) ParseCellKey(key *protos.CellKey) (*models.CellKey, er
 func (m *ModelSerializer) SerializeRole(role *models.Role) (*protos.Role, error) {
 
 	rs := &protos.RoleSigned{
-		Version: CURRENT_ROLE_SIGNED_VERSION,
+		Version: CurrentRoleSignedVersion,
 		Name:    role.RoleName,
 		Rpk:     role.RPK,
 	}
@@ -216,7 +216,7 @@ func (m *ModelSerializer) SerializeRole(role *models.Role) (*protos.Role, error)
 	}
 
 	r := &protos.Role{
-		Version:    CURRENT_ROLE_VERSION,
+		Version:    CurrentRoleVersion,
 		RoleSigned: data,
 		Signature:  signature,
 	}
@@ -246,7 +246,7 @@ func (m *ModelSerializer) ParseRole(role *protos.Role) (*models.Role, error) {
 func (m *ModelSerializer) SerializeRoleAssignment(ra *models.RoleAssignment) (*protos.RoleAssignment, error) {
 
 	ras := &protos.RoleAssignmentSigned{
-		Version:      CURRENT_ROLE_ASSIGNMENT_SIGNED_VERSION,
+		Version:      CurrentRoleAssignmentSignedVersion,
 		RoleName:     ra.RoleName,
 		UserId:       ra.UserID,
 		PublicKeyId:  ra.PublicKeyID,
@@ -263,7 +263,7 @@ func (m *ModelSerializer) SerializeRoleAssignment(ra *models.RoleAssignment) (*p
 	}
 
 	roleAssignment := &protos.RoleAssignment{
-		Version:              CURRENT_ROLE_ASSIGNMENT_VERSION,
+		Version:              CurrentRoleAssignmentVersion,
 		RoleAssignmentSigned: data,
 		Signature:            signature,
 	}
@@ -293,7 +293,7 @@ func (m *ModelSerializer) ParseRoleAssignment(ra *protos.RoleAssignment) (*model
 func (m *ModelSerializer) SerializeGrantKey(key *models.GrantKey) (*protos.GrantKey, error) {
 
 	gks := &protos.GrantKeySigned{
-		Version:               CURRENT_GRANT_KEY_SIGNED_VERSION,
+		Version:               CurrentGrantKeySignedVersion,
 		UserId:                key.UserID,
 		KeyId:                 key.KeyID,
 		EncryptedGrantKeyBlob: key.EncryptedGrantKeyBlob,
@@ -311,7 +311,7 @@ func (m *ModelSerializer) SerializeGrantKey(key *models.GrantKey) (*protos.Grant
 	}
 
 	grantKey := &protos.GrantKey{
-		Version:               CURRENT_GRANT_KEY_VERSION,
+		Version:               CurrentGrantKeyVersion,
 		GrantKeySigned:        data,
 		Signature:             signature,
 		RecordVersion:         key.RecordVersion,

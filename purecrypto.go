@@ -62,7 +62,10 @@ func NewPureCrypto(crypto *crypto.Crypto) *PureCrypto {
 	}
 }
 
-func (p *PureCrypto) EncryptCellKey(plaintext []byte, recipients []crypto.PublicKey, signingKey crypto.PrivateKey) (*PureCryptoData, error) {
+func (p *PureCrypto) EncryptCellKey(
+	plaintext []byte,
+	recipients []crypto.PublicKey,
+	signingKey crypto.PrivateKey) (*PureCryptoData, error) {
 
 	if len(recipients) == 0 {
 		return nil, errors.New("no recipients provided")

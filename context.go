@@ -173,7 +173,7 @@ func CreateCloudContext(at, nm, bu, sk, pk string,
 
 func CreateDefaultCloudContext(at, nm, bu, sk, pk string,
 	externalPublicKeys map[string][]string) (*Context, error) {
-	return CreateCloudContext(at, nm, bu, sk, pk, externalPublicKeys, clients.PheApiURL, clients.PureApiURL, clients.KmsApiURL)
+	return CreateCloudContext(at, nm, bu, sk, pk, externalPublicKeys, clients.PheAPIURL, clients.PureAPIURL, clients.KmsAPIURL)
 }
 
 func ParseCredentials(prefix, creds string, versioned bool, numPayloads int) (*Credentials, error) {

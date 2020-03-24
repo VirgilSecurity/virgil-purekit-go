@@ -51,7 +51,7 @@ type PureClient struct {
 }
 
 const (
-	PureApiURL = "https://api.virgilsecurity.com/pure/v1"
+	PureAPIURL = "https://api.virgilsecurity.com/pure/v1"
 )
 
 const keyCascade = "cascade"
@@ -60,7 +60,7 @@ const keyCascade = "cascade"
 func (c *PureClient) InsertUser(req *protos.UserRecord) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: INSERT_USER,
+		Endpoint: InsertUser,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -71,7 +71,7 @@ func (c *PureClient) InsertUser(req *protos.UserRecord) (err error) {
 func (c *PureClient) UpdateUser(req *protos.UserRecord) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: UPDATE_USER,
+		Endpoint: UpdateUser,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -82,7 +82,7 @@ func (c *PureClient) UpdateUser(req *protos.UserRecord) (err error) {
 func (c *PureClient) GetUser(req *protos.UserIdRequest) (resp *protos.UserRecord, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_USER,
+		Endpoint: GetUser,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -101,7 +101,7 @@ func (c *PureClient) GetUser(req *protos.UserIdRequest) (resp *protos.UserRecord
 func (c *PureClient) GetUsers(userIds ...string) (resp *protos.UserRecords, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_USERS,
+		Endpoint: GetUsers,
 		Header:   c.makeHeader(c.AppToken),
 	}
 
@@ -122,7 +122,7 @@ func (c *PureClient) GetUsers(userIds ...string) (resp *protos.UserRecords, err 
 func (c *PureClient) DeleteUser(req *protos.UserIdRequest, cascade bool) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: DELETE_USER,
+		Endpoint: DeleteUser,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -134,7 +134,7 @@ func (c *PureClient) DeleteUser(req *protos.UserIdRequest, cascade bool) (err er
 func (c *PureClient) InsertCellKey(req *protos.CellKey) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: INSERT_CELL_KEY,
+		Endpoint: InsertCellKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -145,7 +145,7 @@ func (c *PureClient) InsertCellKey(req *protos.CellKey) (err error) {
 func (c *PureClient) UpdateCellKey(req *protos.CellKey) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: UPDATE_CELL_KEY,
+		Endpoint: UpdateCellKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -156,7 +156,7 @@ func (c *PureClient) UpdateCellKey(req *protos.CellKey) (err error) {
 func (c *PureClient) GetCellKey(req *protos.UserIdAndDataIdRequest) (resp *protos.CellKey, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_CELL_KEY,
+		Endpoint: GetCellKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -175,7 +175,7 @@ func (c *PureClient) GetCellKey(req *protos.UserIdAndDataIdRequest) (resp *proto
 func (c *PureClient) DeleteCellKey(req *protos.UserIdAndDataIdRequest) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: DELETE_CELL_KEY,
+		Endpoint: DeleteCellKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -186,7 +186,7 @@ func (c *PureClient) DeleteCellKey(req *protos.UserIdAndDataIdRequest) (err erro
 func (c *PureClient) InsertRole(req *protos.Role) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: INSERT_ROLE,
+		Endpoint: InsertRole,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -197,7 +197,7 @@ func (c *PureClient) InsertRole(req *protos.Role) (err error) {
 func (c *PureClient) GetRoles(req *protos.GetRoles) (resp *protos.Roles, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_ROLES,
+		Endpoint: GetRoles,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -217,7 +217,7 @@ func (c *PureClient) GetRoles(req *protos.GetRoles) (resp *protos.Roles, err err
 func (c *PureClient) InsertRoleAssignments(req *protos.RoleAssignments) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: INSERT_ROLE_ASSIGNMENTS,
+		Endpoint: InsertRoleAssignments,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -228,18 +228,18 @@ func (c *PureClient) InsertRoleAssignments(req *protos.RoleAssignments) (err err
 func (c *PureClient) GetRoleAssignments(req *protos.GetRoleAssignments) (resp *protos.RoleAssignments, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_ROLE_ASSIGNMENTS,
+		Endpoint: GetRoleAssignments,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
 
-	if hresp, err := c.getClient().Send(context.TODO(), hreq); err != nil {
+	var hresp *client.Response
+	if hresp, err = c.getClient().Send(context.TODO(), hreq); err != nil {
 		return nil, err
-	} else {
-		resp = &protos.RoleAssignments{}
-		if err = hresp.Unmarshal(resp); err != nil {
-			return nil, err
-		}
+	}
+	resp = &protos.RoleAssignments{}
+	if err = hresp.Unmarshal(resp); err != nil {
+		return nil, err
 	}
 	return
 }
@@ -247,18 +247,18 @@ func (c *PureClient) GetRoleAssignments(req *protos.GetRoleAssignments) (resp *p
 func (c *PureClient) GetRoleAssignment(req *protos.GetRoleAssignment) (resp *protos.RoleAssignment, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_ROLE_ASSIGNMENT,
+		Endpoint: GetRoleAssignment,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
 
-	if hresp, err := c.getClient().Send(context.TODO(), hreq); err != nil {
+	var hresp *client.Response
+	if hresp, err = c.getClient().Send(context.TODO(), hreq); err != nil {
 		return nil, err
-	} else {
-		resp = &protos.RoleAssignment{}
-		if err = hresp.Unmarshal(resp); err != nil {
-			return nil, err
-		}
+	}
+	resp = &protos.RoleAssignment{}
+	if err = hresp.Unmarshal(resp); err != nil {
+		return nil, err
 	}
 	return
 }
@@ -266,7 +266,7 @@ func (c *PureClient) GetRoleAssignment(req *protos.GetRoleAssignment) (resp *pro
 func (c *PureClient) DeleteRoleAssignments(req *protos.DeleteRoleAssignments) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: DELETE_ROLE_ASSIGNMENTS,
+		Endpoint: DeleteRoleAssignments,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -277,7 +277,7 @@ func (c *PureClient) DeleteRoleAssignments(req *protos.DeleteRoleAssignments) (e
 func (c *PureClient) InsertGrantKey(req *protos.GrantKey) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: INSERT_GRANT_KEY,
+		Endpoint: InsertGrantKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -288,7 +288,7 @@ func (c *PureClient) InsertGrantKey(req *protos.GrantKey) (err error) {
 func (c *PureClient) GetGrantKey(req *protos.GrantKeyDescriptor) (resp *protos.GrantKey, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: GET_GRANT_KEY,
+		Endpoint: GetGrantKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}
@@ -307,7 +307,7 @@ func (c *PureClient) GetGrantKey(req *protos.GrantKeyDescriptor) (resp *protos.G
 func (c *PureClient) DeleteGrantKey(req *protos.GrantKeyDescriptor) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: DELETE_GRANT_KEY,
+		Endpoint: DeleteGrantKey,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}

@@ -50,14 +50,14 @@ type KmsClient struct {
 }
 
 const (
-	KmsApiURL = "https://api.virgilsecurity.com/kms/v1"
+	KmsAPIURL = "https://api.virgilsecurity.com/kms/v1"
 )
 
 //GetEnrollment receives random enrollment from service
 func (c *KmsClient) Decrypt(req *protos.DecryptRequest) (resp *protos.DecryptResponse, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: DECRYPT_REQUEST,
+		Endpoint: DecryptRequest,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}

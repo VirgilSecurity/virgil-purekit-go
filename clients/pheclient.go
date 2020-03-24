@@ -50,7 +50,7 @@ type PheClient struct {
 }
 
 const (
-	PheApiURL = "https://api.virgilsecurity.com/phe/v1"
+	PheAPIURL = "https://api.virgilsecurity.com/phe/v1"
 )
 
 //GetEnrollment receives random enrollment from service
@@ -77,7 +77,7 @@ func (c *PheClient) VerifyPassword(req *protos.VerifyPasswordRequest) (resp *pro
 
 	hreq := &client.Request{
 		Method:   http.MethodPost,
-		Endpoint: VERIFY_PASSWORD,
+		Endpoint: VerifyPassword,
 		Header:   c.makeHeader(c.AppToken),
 		Payload:  req,
 	}

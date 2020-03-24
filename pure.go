@@ -293,7 +293,12 @@ func (p *Pure) Encrypt(userID, dataID string, plaintext []byte) ([]byte, error) 
 
 func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames []string, publicKeys []crypto.PublicKey, plainText []byte) ([]byte, error) {
 
-	var cpk crypto.PublicKey
+	var (
+		cpk         crypto.PublicKey
+		userRecords []*models.UserRecord
+		roles       []*models.Role
+	)
+
 	cellKey, err := p.Storage.SelectCellKey(userID, dataID)
 	if err == nil {
 		if cpk, err = p.PureCrypto.ImportPublicKey(cellKey.CPK); err != nil {
@@ -306,7 +311,7 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 		userIds = append(userIds, otherUserIDs...)
 		userIds = append(userIds, userID)
 
-		userRecords, err := p.Storage.SelectUsers(userIds...)
+		userRecords, err = p.Storage.SelectUsers(userIds...)
 		if err != nil {
 			return nil, err
 		}
@@ -319,7 +324,7 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 			recipientList = append(recipientList, otherUpk)
 		}
 
-		roles, err := p.Storage.SelectRoles(roleNames...)
+		roles, err = p.Storage.SelectRoles(roleNames...)
 		if err != nil {
 			return nil, err
 		}
@@ -336,19 +341,26 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 			recipientList = append(recipientList, p.ExternalPublicKeys[dataID]...)
 		}
 
-		ckp, err := p.PureCrypto.GenerateCellKey()
+		var (
+			ckp              crypto.PrivateKey
+			cpkData          []byte
+			cskData          []byte
+			encryptedCskData *PureCryptoData
+		)
+
+		ckp, err = p.PureCrypto.GenerateCellKey()
 		if err != nil {
 			return nil, err
 		}
-		cpkData, err := p.PureCrypto.ExportPublicKey(ckp.PublicKey())
+		cpkData, err = p.PureCrypto.ExportPublicKey(ckp.PublicKey())
 		if err != nil {
 			return nil, err
 		}
-		cskData, err := p.PureCrypto.ExportPrivateKey(ckp)
+		cskData, err = p.PureCrypto.ExportPrivateKey(ckp)
 		if err != nil {
 			return nil, err
 		}
-		encryptedCskData, err := p.PureCrypto.EncryptCellKey(cskData, recipientList, p.Oskp)
+		encryptedCskData, err = p.PureCrypto.EncryptCellKey(cskData, recipientList, p.Oskp)
 		if err != nil {
 			return nil, err
 		}
@@ -363,7 +375,7 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 
 		if err = p.Storage.InsertCellKey(cellKey); err != nil {
 			if err == storage.ErrorAlreadyExists {
-				cellKey, err := p.Storage.SelectCellKey(userID, dataID)
+				cellKey, err = p.Storage.SelectCellKey(userID, dataID)
 				if err != nil {
 					return nil, err
 				}
@@ -747,7 +759,11 @@ func (p *Pure) registerUserInternal(userID, password string) (*models.UserRecord
 	return userRecord, ukp, accountKey, nil
 }
 
-func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.PrivateKey, phek []byte, sessionParams *SessionParameters) (*AuthResult, error) {
+func (p *Pure) authenticateUserInternal(
+	record *models.UserRecord,
+	ukp crypto.PrivateKey,
+	phek []byte,
+	sessionParams *SessionParameters) (*AuthResult, error) {
 
 	var ttl time.Duration
 	var sessionID string
@@ -815,7 +831,7 @@ func (p *Pure) authenticateUserInternal(record *models.UserRecord, ukp crypto.Pr
 	}
 
 	encryptedGrant := &protos.EncryptedGrant{
-		Version:       storage.CURRENT_ENCRYPTED_GRANT_VERSION,
+		Version:       storage.CurrentEncryptedGrantVersion,
 		EncryptedPhek: encryptedPhek,
 		Header:        headerBytes,
 	}
