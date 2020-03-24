@@ -651,3 +651,8 @@ func (m *MariaDBPureStorage) CleanDB() error {
 	}
 	return nil
 }
+
+func (m *MariaDBPureStorage) ExecuteSQL(stmt string) error {
+	_, err := m.db.Exec(stmt)
+	return err
+}
