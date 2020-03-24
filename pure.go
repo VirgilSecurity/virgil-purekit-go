@@ -291,7 +291,13 @@ func (p *Pure) Encrypt(userID, dataID string, plaintext []byte) ([]byte, error) 
 	return p.encrypt(userID, dataID, nil, nil, nil, plaintext)
 }
 
-func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames []string, publicKeys []crypto.PublicKey, plainText []byte) ([]byte, error) {
+//nolint: gocyclo,gocritic
+func (p *Pure) encrypt(
+	userID, dataID string,
+	otherUserIDs []string,
+	roleNames []string,
+	publicKeys []crypto.PublicKey,
+	plainText []byte) ([]byte, error) {
 
 	var (
 		cpk         crypto.PublicKey

@@ -44,7 +44,7 @@ import (
 	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
 )
 
-//PheClient implements API request layer
+//KmsClient implements API request layer
 type KmsClient struct {
 	*Client
 }
@@ -53,7 +53,6 @@ const (
 	KmsAPIURL = "https://api.virgilsecurity.com/kms/v1"
 )
 
-//GetEnrollment receives random enrollment from service
 func (c *KmsClient) Decrypt(req *protos.DecryptRequest) (resp *protos.DecryptResponse, err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,

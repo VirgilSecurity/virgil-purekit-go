@@ -37,11 +37,9 @@
 package clients
 
 const (
-	// PHE
 	ENROLL         = "/enroll"
 	VerifyPassword = "/verify-password"
 
-	// PURE
 	InsertUser            = "/insert-user"
 	UpdateUser            = "/update-user"
 	GetUser               = "/get-user"
@@ -61,6 +59,5 @@ const (
 	GetGrantKey           = "/get-grant-key"
 	DeleteGrantKey        = "/delete-grant-key"
 
-	// KMS
 	DecryptRequest = "/decrypt"
 )

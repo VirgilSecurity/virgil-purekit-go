@@ -56,7 +56,6 @@ const (
 
 const keyCascade = "cascade"
 
-//InsertUser
 func (c *PureClient) InsertUser(req *protos.UserRecord) (err error) {
 	hreq := &client.Request{
 		Method:   http.MethodPost,

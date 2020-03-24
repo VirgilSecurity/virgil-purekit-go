@@ -145,7 +145,6 @@ func (m *MariaDBPureStorage) SelectUser(userID string) (*models.UserRecord, erro
 	return m.parseUser(pb)
 }
 
-//gosec
 func (m *MariaDBPureStorage) SelectUsers(userIDs ...string) ([]*models.UserRecord, error) {
 
 	if len(userIDs) == 0 {
