@@ -373,8 +373,9 @@ func (p *Pure) encrypt(userID, dataID string, otherUserIDs []string, roleNames [
 			} else {
 				return nil, err
 			}
+		} else {
+			cpk = ckp.PublicKey()
 		}
-		cpk = ckp.PublicKey()
 	} else {
 		return nil, err
 	}

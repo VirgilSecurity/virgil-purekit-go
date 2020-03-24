@@ -45,11 +45,10 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
-	"github.com/golang/protobuf/proto"
 	"github.com/jmoiron/sqlx"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type MariaDBPureStorage struct {

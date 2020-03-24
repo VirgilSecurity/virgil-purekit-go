@@ -9,4 +9,4 @@ install:
 script:
   - "go install github.com/golangci/golangci-lint/cmd/golangci-lint;
     golangci-lint run;"
-  - "go test  -count 1 ./... ;"
+  - "go test -mod=readonly -count 1 ./... ;"
