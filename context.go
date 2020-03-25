@@ -72,19 +72,19 @@ type Context struct {
 
 //CreateContext validates input parameters and prepares them for being used in Protocol
 func CreateContext(c *crypto.Crypto,
-	appToken, nms, buppk, secretKey, publicKey string,
+	at, nm, bu, sk, pk string,
 	pureStorage storage.PureStorage,
 	externalPublicKeys map[string][]string,
 	pheServerAddress, kmsServerAddress string) (*Context, error) {
 
-	if appToken == "" {
+	if at == "" {
 		return nil, errors.New("app token is mandatory")
 	}
 
 	res := &Context{}
 	res.Crypto = c
 
-	nmsCred, err := ParseCredentials(NmsPrefix, nms, false, 1)
+	nmsCred, err := ParseCredentials(NmsPrefix, nm, false, 1)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid nms")
 	}
@@ -92,7 +92,7 @@ func CreateContext(c *crypto.Crypto,
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid nms")
 	}
-	buppkCreds, err := ParseCredentials(BuppkPrefix, buppk, false, 1)
+	buppkCreds, err := ParseCredentials(BuppkPrefix, bu, false, 1)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid Buppk")
 	}
@@ -100,11 +100,11 @@ func CreateContext(c *crypto.Crypto,
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid Buppk")
 	}
-	res.SecretKey, err = ParseCredentials(SecretKeyPrefix, secretKey, true, 3)
+	res.SecretKey, err = ParseCredentials(SecretKeyPrefix, sk, true, 3)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid secretKey")
+		return nil, errors.Wrap(err, "invalid sk")
 	}
-	res.PublicKey, err = ParseCredentials(PublicKeyPrefix, publicKey, true, 2)
+	res.PublicKey, err = ParseCredentials(PublicKeyPrefix, pk, true, 2)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid publicKey")
 	}
@@ -119,13 +119,13 @@ func CreateContext(c *crypto.Crypto,
 
 	res.PheClient = &clients.PheClient{
 		Client: &clients.Client{
-			AppToken: appToken,
+			AppToken: at,
 			URL:      pheServerAddress,
 		}}
 
 	res.KmsClient = &clients.KmsClient{
 		Client: &clients.Client{
-			AppToken: appToken,
+			AppToken: at,
 			URL:      kmsServerAddress,
 		}}
 

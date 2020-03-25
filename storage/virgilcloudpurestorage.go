@@ -211,6 +211,9 @@ func (v *VirgilCloudPureStorage) SelectRoleAssignments(userID string) ([]*models
 		if err != nil {
 			return nil, err
 		}
+		if model.UserID != userID {
+			return nil, errors.New("user ID mismatch")
+		}
 		mdls = append(mdls, model)
 	}
 	return mdls, nil
