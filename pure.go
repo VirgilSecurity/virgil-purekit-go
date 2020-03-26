@@ -191,6 +191,17 @@ func (p *Pure) DeleteUser(userID string, cascade bool) error {
 	return p.Storage.DeleteUser(userID, cascade)
 }
 
+func (p *Pure) ResetUser(userID, newPassword string, cascade bool) error {
+	if err := p.DeleteUser(userID, cascade); err != nil {
+		return err
+	}
+	return p.RegisterUser(userID, newPassword)
+}
+
+func (p *Pure) DeleteKey(userID, dataID string) error {
+	return p.Storage.DeleteCellKey(userID, dataID)
+}
+
 func (p *Pure) PerformRotation() (*RotationResults, error) {
 	if p.CurrentVersion <= 1 {
 		return &RotationResults{0, 0}, nil
@@ -288,11 +299,11 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 }
 
 func (p *Pure) Encrypt(userID, dataID string, plaintext []byte) ([]byte, error) {
-	return p.encrypt(userID, dataID, nil, nil, nil, plaintext)
+	return p.EncryptGeneral(userID, dataID, nil, nil, nil, plaintext)
 }
 
-//nolint: gocyclo,gocritic
-func (p *Pure) encrypt(
+//nolint: golint,gocyclo,gocritic
+func (p *Pure) EncryptGeneral(
 	userID, dataID string,
 	otherUserIDs []string,
 	roleNames []string,

@@ -1,7 +1,6 @@
 language: go
 go:
 - stable
-- tip
 
 services: mysql
 
