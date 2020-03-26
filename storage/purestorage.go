@@ -34,13 +34,37 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package storage
 
-import "github.com/pkg/errors"
-
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
+import (
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
 )
+
+type PureStorage interface {
+	InsertUser(record *models.UserRecord) error
+	UpdateUser(record *models.UserRecord) error
+	UpdateUsers(records []*models.UserRecord, previousRecordVersion uint32) error
+	SelectUser(userID string) (*models.UserRecord, error)
+	SelectUsers(userIDs ...string) ([]*models.UserRecord, error)
+	SelectUsersByVersion(version uint32) ([]*models.UserRecord, error)
+	DeleteUser(userID string, cascade bool) error
+	SelectCellKey(userID, dataID string) (*models.CellKey, error)
+	InsertCellKey(key *models.CellKey) error
+	UpdateCellKey(key *models.CellKey) error
+	DeleteCellKey(userID, dataID string) error
+	InsertRole(role *models.Role) error
+	SelectRoles(roleNames ...string) ([]*models.Role, error)
+	InsertRoleAssignments(assignments ...*models.RoleAssignment) error
+	SelectRoleAssignments(userID string) ([]*models.RoleAssignment, error)
+	SelectRoleAssignment(roleName, userID string) (*models.RoleAssignment, error)
+	DeleteRoleAssignments(roleName string, userIDs ...string) error
+	InsertGrantKey(key *models.GrantKey) error
+	SelectGrantKey(userID string, keyID []byte) (*models.GrantKey, error)
+	SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error)
+	UpdateGrantKeys(keys ...*models.GrantKey) error
+	DeleteGrantKey(userID string, keyID []byte) error
+}
+
+type SerializerDependentStorage interface {
+	SetSerializer(serializer *ModelSerializer)
+}

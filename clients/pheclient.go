@@ -34,13 +34,61 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package clients
 
-import "github.com/pkg/errors"
+import (
+	"context"
+	"net/http"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
 )
+
+//PheClient implements API request layer
+type PheClient struct {
+	*Client
+}
+
+const (
+	PheAPIURL = "https://api.virgilsecurity.com/phe/v1"
+)
+
+//GetEnrollment receives random enrollment from service
+func (c *PheClient) GetEnrollment(req *protos.EnrollmentRequest) (resp *protos.EnrollmentResponse, err error) {
+	hreq := &client.Request{
+		Method:   http.MethodPost,
+		Endpoint: ENROLL,
+		Header:   c.makeHeader(c.AppToken),
+		Payload:  req,
+	}
+	hresp, err := c.getClient().Send(context.TODO(), hreq)
+	if err != nil {
+		return nil, err
+	}
+	resp = &protos.EnrollmentResponse{}
+	if err = hresp.Unmarshal(resp); err != nil {
+		return nil, err
+	}
+	return
+}
+
+//VerifyPassword does not send password to server, only the part tat server provided in GetEnrollment
+func (c *PheClient) VerifyPassword(req *protos.VerifyPasswordRequest) (resp *protos.VerifyPasswordResponse, err error) {
+
+	hreq := &client.Request{
+		Method:   http.MethodPost,
+		Endpoint: VerifyPassword,
+		Header:   c.makeHeader(c.AppToken),
+		Payload:  req,
+	}
+
+	hresp, err := c.getClient().Send(context.TODO(), hreq)
+	if err != nil {
+		return nil, err
+	}
+	resp = &protos.VerifyPasswordResponse{}
+	if err = hresp.Unmarshal(resp); err != nil {
+		return nil, err
+	}
+	return
+}

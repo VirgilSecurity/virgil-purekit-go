@@ -34,13 +34,14 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package models
 
-import "github.com/pkg/errors"
-
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
-)
+type GrantKey struct {
+	UserID                string
+	KeyID                 []byte
+	RecordVersion         uint32
+	EncryptedGrantKeyWrap []byte
+	EncryptedGrantKeyBlob []byte
+	CreationDate          uint64
+	ExpirationDate        uint64
+}

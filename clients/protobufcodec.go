@@ -34,13 +34,22 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package clients
 
-import "github.com/pkg/errors"
-
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
+import (
+	"google.golang.org/protobuf/proto"
 )
+
+type ProtobufCodec struct{}
+
+func (c *ProtobufCodec) Marshal(obj interface{}) (body []byte, err error) {
+	return proto.Marshal(obj.(proto.Message))
+}
+
+func (c *ProtobufCodec) Unmarshal(data []byte, obj interface{}) error {
+	return proto.Unmarshal(data, obj.(proto.Message))
+}
+
+func (c *ProtobufCodec) Name() string {
+	return "application/protobuf"
+}

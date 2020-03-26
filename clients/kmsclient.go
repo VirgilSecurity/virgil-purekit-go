@@ -34,13 +34,39 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package clients
 
-import "github.com/pkg/errors"
+import (
+	"context"
+	"net/http"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
 )
+
+//KmsClient implements API request layer
+type KmsClient struct {
+	*Client
+}
+
+const (
+	KmsAPIURL = "https://api.virgilsecurity.com/kms/v1"
+)
+
+func (c *KmsClient) Decrypt(req *protos.DecryptRequest) (resp *protos.DecryptResponse, err error) {
+	hreq := &client.Request{
+		Method:   http.MethodPost,
+		Endpoint: DecryptRequest,
+		Header:   c.makeHeader(c.AppToken),
+		Payload:  req,
+	}
+	hresp, err := c.getClient().Send(context.TODO(), hreq)
+	if err != nil {
+		return nil, err
+	}
+	resp = &protos.DecryptResponse{}
+	if err = hresp.Unmarshal(resp); err != nil {
+		return nil, err
+	}
+	return
+}

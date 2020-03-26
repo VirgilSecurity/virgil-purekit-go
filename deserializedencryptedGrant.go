@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 Virgil Security Inc.
+ * Copyright (C) 2015-2020 Virgil Security Inc.
  *
  * All rights reserved.
  *
@@ -36,40 +36,9 @@
 
 package purekit
 
-import (
-	"net/http"
-	"sync"
-)
+import "github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 
-//APIClient implements API request layer
-type APIClient struct {
-	AppToken   string
-	URL        string
-	HTTPClient *VirgilHTTPClient
-	once       sync.Once
-}
-
-//GetEnrollment receives random enrollment from service
-func (c *APIClient) GetEnrollment(req *EnrollmentRequest) (resp *EnrollmentResponse, err error) {
-	resp = &EnrollmentResponse{}
-	_, err = c.getClient().Send(c.AppToken, http.MethodPost, "/phe/v1/enroll", req, resp)
-	return
-}
-
-//VerifyPassword does not send password to server, only the part tat server provided in GetEnrollment
-func (c *APIClient) VerifyPassword(req *VerifyPasswordRequest) (resp *VerifyPasswordResponse, err error) {
-	resp = &VerifyPasswordResponse{}
-	_, err = c.getClient().Send(c.AppToken, http.MethodPost, "/phe/v1/verify-password", req, resp)
-	return
-}
-
-func (c *APIClient) getClient() *VirgilHTTPClient {
-	c.once.Do(func() {
-		if c.HTTPClient == nil {
-			c.HTTPClient = &VirgilHTTPClient{
-				Address: c.URL,
-			}
-		}
-	})
-	return c.HTTPClient
+type DeserializedEncryptedGrant struct {
+	EncryptedGrant       *protos.EncryptedGrant
+	EncryptedGrantHeader *protos.EncryptedGrantHeader
 }

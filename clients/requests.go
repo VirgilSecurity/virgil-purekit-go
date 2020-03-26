@@ -34,13 +34,30 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package clients
 
-import "github.com/pkg/errors"
+const (
+	ENROLL         = "/enroll"
+	VerifyPassword = "/verify-password"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
+	InsertUser            = "/insert-user"
+	UpdateUser            = "/update-user"
+	GetUser               = "/get-user"
+	GetUsers              = "/get-users"
+	DeleteUser            = "/delete-user"
+	InsertCellKey         = "/insert-cell-key"
+	UpdateCellKey         = "/update-cell-key"
+	GetCellKey            = "/get-cell-key"
+	DeleteCellKey         = "/delete-cell-key"
+	InsertRole            = "/insert-role"
+	GetRoles              = "/get-roles"
+	InsertRoleAssignments = "/role-assignments"
+	GetRoleAssignments    = "/get-role-assignments"
+	GetRoleAssignment     = "/get-role-assignment"
+	DeleteRoleAssignments = "/delete-role-assignments"
+	InsertGrantKey        = "/insert-grant-key"
+	GetGrantKey           = "/get-grant-key"
+	DeleteGrantKey        = "/delete-grant-key"
+
+	DecryptRequest = "/decrypt"
 )

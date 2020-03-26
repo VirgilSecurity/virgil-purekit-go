@@ -3,9 +3,18 @@ go:
 - stable
 - tip
 
+services: mysql
+
+os: linux
+
 before_install:
-    - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-    - dep ensure
+  - openssl aes-256-cbc -K $envkey -iv $enviv -in testdata/env.json.enc -out testdata/env.json -d
+  - mysql -e 'CREATE DATABASE puretest;'
+
+install:
+  - go mod download
 
 script:
-- go test -v ./...
+  - go install github.com/golangci/golangci-lint/cmd/golangci-lint;
+  - golangci-lint run;
+  - go test -test.v=1 -mod=readonly -count 1 ./... ;

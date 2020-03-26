@@ -1,3 +1,5 @@
+// +build tools
+
 /*
  * Copyright (C) 2015-2020 Virgil Security Inc.
  *
@@ -36,11 +38,6 @@
 
 package purekit
 
-import "github.com/pkg/errors"
-
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
+import (
+	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 )

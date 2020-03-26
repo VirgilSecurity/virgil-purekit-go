@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 Virgil Security Inc.
+ * Copyright (C) 2015-2020 Virgil Security Inc.
  *
  * All rights reserved.
  *
@@ -38,138 +38,200 @@ package purekit
 
 import (
 	"encoding/base64"
-	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/VirgilSecurity/virgil-phe-go"
-
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/clients"
+	"github.com/VirgilSecurity/virgil-purekit-go/v3/storage"
+	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
 	"github.com/pkg/errors"
+)
+
+const (
+	NmsPrefix       = "NM"
+	BuppkPrefix     = "BU"
+	SecretKeyPrefix = "SK"
+	PublicKeyPrefix = "PK"
 )
 
 // Context holds & validates protocol input parameters
 type Context struct {
-	AppToken    string
-	PHEClients  map[uint32]*phe.Client
-	Version     uint32
-	UpdateToken *VersionedUpdateToken
+	Crypto              *crypto.Crypto
+	Version             uint32
+	UpdateToken         *Credentials
+	PublicKey           *Credentials
+	SecretKey           *Credentials
+	Buppk               crypto.PublicKey
+	Storage             storage.PureStorage
+	PheClient           *clients.PheClient
+	KmsClient           *clients.KmsClient
+	NonRotatableSecrets *NonRotatableSecrets
+	ExternalPublicKeys  map[string][]crypto.PublicKey
+	AppToken            string
 }
 
 //CreateContext validates input parameters and prepares them for being used in Protocol
-func CreateContext(appToken, servicePublicKey, clientSecretKey, updateToken string) (*Context, error) {
+func CreateContext(c *crypto.Crypto,
+	at, nm, bu, sk, pk string,
+	pureStorage storage.PureStorage,
+	externalPublicKeys map[string][]string,
+	pheServerAddress, kmsServerAddress string) (*Context, error) {
 
-	if appToken == "" {
+	if at == "" {
 		return nil, errors.New("app token is mandatory")
 	}
 
-	skVersion, sk, err := ParseVersionAndContent("SK", clientSecretKey)
+	res := &Context{}
+	res.Crypto = c
+
+	nmsCred, err := ParseCredentials(NmsPrefix, nm, false, 1)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid secret key")
+		return nil, errors.Wrap(err, "invalid nms")
 	}
-
-	pubVersion, pubBytes, err := ParseVersionAndContent("PK", servicePublicKey)
+	res.NonRotatableSecrets, err = GenerateNonRotatableSecrets(c, nmsCred.Payload1)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid public key")
+		return nil, errors.Wrap(err, "invalid nms")
 	}
-
-	if skVersion != pubVersion {
-		return nil, errors.New("public and secret keys must have the same version")
-	}
-
-	currentSk, currentPub := sk, pubBytes
-	pheClient, err := phe.NewClient(currentPub, currentSk)
-
+	buppkCreds, err := ParseCredentials(BuppkPrefix, bu, false, 1)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create PHE client")
+		return nil, errors.Wrap(err, "invalid Buppk")
 	}
-
-	phes := make(map[uint32]*phe.Client)
-	phes[pubVersion] = pheClient
-
-	token, err := parseToken(updateToken)
+	res.Buppk, err = c.ImportPublicKey(buppkCreds.Payload1)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse update tokens")
+		return nil, errors.Wrap(err, "invalid Buppk")
+	}
+	res.SecretKey, err = ParseCredentials(SecretKeyPrefix, sk, true, 3)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid sk")
+	}
+	res.PublicKey, err = ParseCredentials(PublicKeyPrefix, pk, true, 2)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid publicKey")
 	}
 
-	currentVersion := pubVersion
-
-	if token != nil {
-		curVer, err := processToken(token, phes, currentVersion, currentPub, currentSk)
-		if err != nil {
-			return nil, err
+	if serializerDependentStorage, ok := pureStorage.(storage.SerializerDependentStorage); ok {
+		serializer := &storage.ModelSerializer{
+			SigningKey: res.NonRotatableSecrets.Vksp,
+			Crypto:     c,
 		}
-		currentVersion = curVer
+		serializerDependentStorage.SetSerializer(serializer)
 	}
 
-	return &Context{
-		AppToken:    appToken,
-		PHEClients:  phes,
-		Version:     currentVersion,
-		UpdateToken: token,
-	}, nil
+	res.PheClient = &clients.PheClient{
+		Client: &clients.Client{
+			AppToken: at,
+			URL:      pheServerAddress,
+		}}
+
+	res.KmsClient = &clients.KmsClient{
+		Client: &clients.Client{
+			AppToken: at,
+			URL:      kmsServerAddress,
+		}}
+
+	res.Storage = pureStorage
+
+	if externalPublicKeys != nil {
+		res.ExternalPublicKeys = make(map[string][]crypto.PublicKey)
+		for id, keys := range externalPublicKeys {
+			publicKeys := make([]crypto.PublicKey, 0, len(keys))
+			for _, keyStr := range keys {
+				bKey, err := base64.StdEncoding.DecodeString(keyStr)
+				if err != nil {
+					return nil, err
+				}
+				key, err := c.ImportPublicKey(bKey)
+				if err != nil {
+					return nil, err
+				}
+				publicKeys = append(publicKeys, key)
+			}
+			res.ExternalPublicKeys[id] = publicKeys
+		}
+	}
+	return res, nil
 }
 
-func processToken(token *VersionedUpdateToken, clients map[uint32]*phe.Client, curVer uint32, currentPub, currentSk []byte) (currentVersion uint32, err error) {
-	if token.Version != curVer+1 {
-		return 0, fmt.Errorf("incorrect token version %d", token.Version)
-	}
+func CreateCloudContext(at, nm, bu, sk, pk string,
+	externalPublicKeys map[string][]string,
+	pheServiceAddress,
+	pureServiceAddress,
+	kmsServiceAddress string) (*Context, error) {
 
-	nextSk, nextPub, err := phe.RotateClientKeys(currentPub, currentSk, token.UpdateToken)
-	if err != nil {
-		return 0, errors.Wrap(err, "could not update keys using token")
+	c := &crypto.Crypto{}
+	pureClient := &clients.PureClient{
+		Client: &clients.Client{
+			AppToken: at,
+			URL:      pureServiceAddress,
+		},
 	}
-
-	nextClient, err := phe.NewClient(nextPub, nextSk)
-	if err != nil {
-		return 0, errors.Wrap(err, "could not create PHE client")
+	stor := &storage.VirgilCloudPureStorage{
+		Client: pureClient,
 	}
-
-	clients[token.Version] = nextClient
-	currentVersion = token.Version
-	return
+	return CreateContext(c, at, nm, bu, sk, pk, stor, externalPublicKeys, pheServiceAddress, kmsServiceAddress)
 }
 
-func parseToken(token string) (parsedToken *VersionedUpdateToken, err error) {
-	if len(token) == 0 {
-		return nil, nil
-	}
-
-	version, content, err := ParseVersionAndContent("UT", token)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid update token")
-	}
-
-	vt := &VersionedUpdateToken{
-		Version:     version,
-		UpdateToken: content,
-	}
-
-	parsedToken = vt
-
-	return parsedToken, nil
+func CreateDefaultCloudContext(at, nm, bu, sk, pk string,
+	externalPublicKeys map[string][]string) (*Context, error) {
+	return CreateCloudContext(at, nm, bu, sk, pk, externalPublicKeys, clients.PheAPIURL, clients.PureAPIURL, clients.KmsAPIURL)
 }
 
-//ParseVersionAndContent splits string into 3 parts: Prefix, version and decoded base64 content
-func ParseVersionAndContent(prefix, str string) (version uint32, content []byte, err error) {
-	parts := strings.Split(str, ".")
-	if len(parts) != 3 || parts[0] != prefix {
-		return 0, nil, errors.New("invalid string")
+func ParseCredentials(prefix, creds string, versioned bool, numPayloads int) (*Credentials, error) {
+	parts := strings.Split(creds, ".")
+	numberOfParts := 1 + numPayloads
+	if versioned {
+		numberOfParts++
+	}
+	if len(parts) != numberOfParts || parts[0] != prefix {
+		return nil, errors.New("credentials parsing error")
 	}
 
-	nVersion, err := strconv.Atoi(parts[1])
+	index := 1
+	res := &Credentials{}
+	if versioned {
+		nVersion, err := strconv.Atoi(parts[index])
+		if err != nil || nVersion < 0 {
+			return nil, errors.Wrap(err, "credentials parsing error")
+		}
+		res.Version = uint32(nVersion)
+		index++
+	}
+
+	payload1, err := base64.StdEncoding.DecodeString(parts[index])
 	if err != nil {
-		return 0, nil, errors.Wrap(err, "invalid string")
+		return nil, errors.Wrap(err, "credentials parsing error")
+	}
+	numPayloads--
+	index++
+	res.Payload1 = payload1
+	if numPayloads > 0 {
+		payload2, err := base64.StdEncoding.DecodeString(parts[index])
+		if err != nil {
+			return nil, errors.Wrap(err, "credentials parsing error")
+		}
+		numPayloads--
+		index++
+		res.Payload2 = payload2
 	}
 
-	if nVersion < 1 {
-		return 0, nil, errors.Wrap(err, "invalid version")
+	if numPayloads > 0 {
+		payload3, err := base64.StdEncoding.DecodeString(parts[index])
+		if err != nil {
+			return nil, errors.Wrap(err, "credentials parsing error")
+		}
+		res.Payload3 = payload3
 	}
-	version = uint32(nVersion)
+	return res, nil
+}
 
-	content, err = base64.StdEncoding.DecodeString(parts[2])
+func (c *Context) SetUpdateToken(updateToken string) error {
+	token, err := ParseCredentials("UT", updateToken, true, 3)
 	if err != nil {
-		return 0, nil, errors.Wrap(err, "invalid string")
+		return err
 	}
-	return
+	if token.Version != c.PublicKey.Version+1 {
+		return errors.New("update token version mismatch")
+	}
+	c.UpdateToken = token
+	return nil
 }

@@ -34,13 +34,10 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
-package purekit
+package protos
 
-import "github.com/pkg/errors"
+import "fmt"
 
-// ErrInvalidPassword is returned when protocol determines validation failure
-var (
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrNoAccess        = errors.New("no access")
-	ErrGrantKeyExpired = errors.New("grant key expired")
-)
+func (m *HttpError) Error() string {
+	return fmt.Sprintf("%s", m.Message)
+}
