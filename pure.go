@@ -302,7 +302,7 @@ func (p *Pure) Encrypt(userID, dataID string, plaintext []byte) ([]byte, error) 
 	return p.EncryptGeneral(userID, dataID, nil, nil, nil, plaintext)
 }
 
-//nolint: gocyclo,gocritic
+//nolint: golint,gocyclo,gocritic
 func (p *Pure) EncryptGeneral(
 	userID, dataID string,
 	otherUserIDs []string,
