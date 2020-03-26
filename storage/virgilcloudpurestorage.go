@@ -71,6 +71,10 @@ func (v *VirgilCloudPureStorage) SelectUser(userID string) (*models.UserRecord, 
 
 	rec, err := v.Client.GetUser(&protos.UserIdRequest{UserId: userID})
 	if err != nil {
+		var httpErr *protos.HttpError
+		if errors.As(err, &httpErr) && httpErr.Code == 50004 {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	mRec, err := v.Serializer.ParseUserRecord(rec)
@@ -128,7 +132,7 @@ func (v *VirgilCloudPureStorage) SelectCellKey(userID, dataID string) (*models.C
 	if err != nil {
 		var httpErr *protos.HttpError
 		if errors.As(err, &httpErr) && httpErr.Code == 50004 {
-			return nil, ErrorNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -243,6 +247,10 @@ func (v *VirgilCloudPureStorage) SelectRoleAssignment(roleName, userID string) (
 
 	ra, err := v.Client.GetRoleAssignment(req)
 	if err != nil {
+		var httpErr *protos.HttpError
+		if errors.As(err, &httpErr) && httpErr.Code == 50004 {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -286,6 +294,10 @@ func (v *VirgilCloudPureStorage) SelectGrantKey(userID string, keyID []byte) (*m
 
 	gk, err := v.Client.GetGrantKey(req)
 	if err != nil {
+		var httpErr *protos.HttpError
+		if errors.As(err, &httpErr) && httpErr.Code == 50004 {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 

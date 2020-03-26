@@ -141,6 +141,9 @@ func (m *MariaDBPureStorage) SelectUser(userID string) (*models.UserRecord, erro
 	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_users 
 		WHERE user_id=?`, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	mUser, err := m.parseUser(pb)
@@ -253,7 +256,7 @@ func (m *MariaDBPureStorage) SelectCellKey(userID, dataID string) (*models.CellK
 		FROM virgil_keys
 		WHERE user_id=? AND data_id=?`, userID, dataID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, ErrorNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -455,6 +458,9 @@ func (m *MariaDBPureStorage) SelectRoleAssignment(roleName, userID string) (*mod
 	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_role_assignments 
 		WHERE user_id=? AND role_name=?;`, userID, roleName); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -523,6 +529,9 @@ func (m *MariaDBPureStorage) SelectGrantKey(userID string, keyID []byte) (*model
 	if err := m.db.Get(&pb, `SELECT protobuf 
 		FROM virgil_grant_keys 
 		WHERE user_id=? AND key_id=?;`, userID, keyID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	mgk, err := m.parseGrantKey(pb)

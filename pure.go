@@ -187,8 +187,8 @@ func (p *Pure) RecoverUser(userID, newPassword string) error {
 	return p.changeUserPasswordInternal(user, privateKeyData, newPassword)
 }
 
-func (p *Pure) DeleteUser(userID string) error {
-	return p.Storage.DeleteUser(userID, true)
+func (p *Pure) DeleteUser(userID string, cascade bool) error {
+	return p.Storage.DeleteUser(userID, cascade)
 }
 
 func (p *Pure) PerformRotation() (*RotationResults, error) {
@@ -310,7 +310,7 @@ func (p *Pure) encrypt(
 		if cpk, err = p.PureCrypto.ImportPublicKey(cellKey.CPK); err != nil {
 			return nil, err
 		}
-	} else if err == storage.ErrorNotFound {
+	} else if err == storage.ErrNotFound {
 		var recipientList []crypto.PublicKey
 		recipientList = append(recipientList, publicKeys...)
 		var userIds []string
@@ -456,6 +456,27 @@ func (p *Pure) Decrypt(grant *models.PureGrant, ownerUserID, dataID string, ciph
 		return nil, errors.New("user has no access to data")
 	}
 
+	ckp, err := p.PureCrypto.ImportPrivateKey(csk)
+	if err != nil {
+		return nil, err
+	}
+	return p.PureCrypto.DecryptData(ciphertext, ckp, p.Oskp.PublicKey())
+}
+
+func (p *Pure) DecryptWithKey(privateKey crypto.PrivateKey, ownerUserID, dataID string, ciphertext []byte) ([]byte, error) {
+
+	cellKey, err := p.Storage.SelectCellKey(ownerUserID, dataID)
+	if err != nil {
+		return nil, err
+	}
+	pureCryptoData := &PureCryptoData{
+		Cms:  cellKey.EncryptedCskCms,
+		Body: cellKey.EncryptedCskBody,
+	}
+	csk, err := p.PureCrypto.DecryptCellKey(pureCryptoData, privateKey, p.Oskp.PublicKey())
+	if err != nil {
+		return nil, err
+	}
 	ckp, err := p.PureCrypto.ImportPrivateKey(csk)
 	if err != nil {
 		return nil, err
@@ -631,7 +652,7 @@ func (p *Pure) decryptPheKeyFromEncryptedGrant(grant *DeserializedEncryptedGrant
 	}
 
 	if grantKey.ExpirationDate < uint64(time.Now().Unix()) {
-		return nil, errors.New("grant key expired")
+		return nil, ErrGrantKeyExpired
 	}
 
 	grantKeyRaw, err := p.KmsManager.RecoverGrantKey(grantKey, grant.EncryptedGrant.Header)
