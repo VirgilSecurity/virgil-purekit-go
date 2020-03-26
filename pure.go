@@ -198,6 +198,10 @@ func (p *Pure) ResetUser(userID, newPassword string, cascade bool) error {
 	return p.RegisterUser(userID, newPassword)
 }
 
+func (p *Pure) DeleteKey(userID, dataID string) error {
+	return p.Storage.DeleteCellKey(userID, dataID)
+}
+
 func (p *Pure) PerformRotation() (*RotationResults, error) {
 	if p.CurrentVersion <= 1 {
 		return &RotationResults{0, 0}, nil
