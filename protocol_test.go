@@ -196,7 +196,7 @@ func TestPure_EncryptDecrypt(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, res)
 
-				ciphertext, err := p.encrypt(userName, dataID, nil, nil, nil, []byte(plaintext))
+				ciphertext, err := p.EncryptGeneral(userName, dataID, nil, nil, nil, []byte(plaintext))
 				require.NoError(t, err)
 				decrypted, err := p.Decrypt(res.Grant, userName, dataID, ciphertext)
 				require.NoError(t, err)
@@ -241,7 +241,7 @@ func TestPure_EncryptDecrypt_Share_Unshare_Admin_ChangePassword(t *testing.T) {
 				kp, err := p.PureCrypto.GenerateUserKey()
 				require.NoError(t, err)
 
-				ciphertext, err := p.encrypt(userId1, dataId, nil, nil, []crypto.PublicKey{kp.PublicKey()}, []byte(plaintext))
+				ciphertext, err := p.EncryptGeneral(userId1, dataId, nil, nil, []crypto.PublicKey{kp.PublicKey()}, []byte(plaintext))
 				require.NoError(t, err)
 
 				err = p.Share(res1.Grant, dataId, []string{userId2}, nil)
@@ -408,7 +408,7 @@ func TestPure_CreateUserGrantAsAdmin(t *testing.T) {
 				err = p.RegisterUser(userId, password)
 				require.NoError(t, err)
 
-				ciphertext, err := p.encrypt(userId, dataId, nil, nil, nil, text)
+				ciphertext, err := p.EncryptGeneral(userId, dataId, nil, nil, nil, text)
 				require.NoError(t, err)
 
 				grant, err := p.CreateUserGrantAsAdmin(userId, bupk, DefaultGrantTTL)
@@ -461,7 +461,7 @@ func TestPure_Roles(t *testing.T) {
 				require.NoError(t, err)
 
 				//user1 encrypts to role
-				ciphertext, err := p.encrypt(userId1, dataId, nil, []string{roleName}, nil, []byte(plaintext))
+				ciphertext, err := p.EncryptGeneral(userId1, dataId, nil, []string{roleName}, nil, []byte(plaintext))
 				require.NoError(t, err)
 
 				decrypted1, err := p.Decrypt(res1.Grant, "", dataId, ciphertext)
@@ -698,7 +698,7 @@ func TestPure_DeleteUser_cascade(t *testing.T) {
 				err = p.RegisterUser(userName, password)
 				require.NoError(t, err)
 
-				ciphertext, err := p.encrypt(userName, dataID, nil, nil, nil, []byte(plaintext))
+				ciphertext, err := p.EncryptGeneral(userName, dataID, nil, nil, nil, []byte(plaintext))
 				require.NoError(t, err)
 
 				res, err := p.AuthenticateUser(userName, password, nil)
@@ -734,7 +734,7 @@ func TestPure_DeleteUser_nocascade(t *testing.T) {
 			err = p.RegisterUser(userName, password)
 			require.NoError(t, err)
 
-			ciphertext, err := p.encrypt(userName, dataID, nil, nil, nil, []byte(plaintext))
+			ciphertext, err := p.EncryptGeneral(userName, dataID, nil, nil, nil, []byte(plaintext))
 			require.NoError(t, err)
 
 			res, err := p.AuthenticateUser(userName, password, nil)
@@ -770,7 +770,7 @@ func TestPure_RecoverUser(t *testing.T) {
 			err = p.RegisterUser(userName, password)
 			require.NoError(t, err)
 
-			ciphertext, err := p.encrypt(userName, dataID, nil, nil, nil, []byte(plaintext))
+			ciphertext, err := p.EncryptGeneral(userName, dataID, nil, nil, nil, []byte(plaintext))
 			require.NoError(t, err)
 
 			require.NoError(t, p.RecoverUser(userName, password2))

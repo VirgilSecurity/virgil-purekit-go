@@ -299,11 +299,11 @@ func (p *Pure) PerformRotation() (*RotationResults, error) {
 }
 
 func (p *Pure) Encrypt(userID, dataID string, plaintext []byte) ([]byte, error) {
-	return p.encrypt(userID, dataID, nil, nil, nil, plaintext)
+	return p.EncryptGeneral(userID, dataID, nil, nil, nil, plaintext)
 }
 
 //nolint: gocyclo,gocritic
-func (p *Pure) encrypt(
+func (p *Pure) EncryptGeneral(
 	userID, dataID string,
 	otherUserIDs []string,
 	roleNames []string,
