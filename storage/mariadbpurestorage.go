@@ -37,6 +37,7 @@
 package storage
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -142,7 +143,14 @@ func (m *MariaDBPureStorage) SelectUser(userID string) (*models.UserRecord, erro
 		WHERE user_id=?`, userID); err != nil {
 		return nil, err
 	}
-	return m.parseUser(pb)
+	mUser, err := m.parseUser(pb)
+	if err != nil {
+		return nil, err
+	}
+	if mUser.UserID != userID {
+		return nil, errors.New("user id mismatch")
+	}
+	return mUser, nil
 }
 
 func (m *MariaDBPureStorage) SelectUsers(userIDs ...string) ([]*models.UserRecord, error) {
@@ -175,10 +183,13 @@ func (m *MariaDBPureStorage) SelectUsers(userIDs ...string) ([]*models.UserRecor
 		if err != nil {
 			return nil, err
 		}
+		if !contains(userIDs, rec.UserID) {
+			return nil, errors.New("user id mismatch")
+		}
 		res = append(res, rec)
 	}
 	if len(res) != len(userIDs) {
-		return nil, errors.New("user ids mismatch")
+		return nil, errors.New("user ids number mismatch")
 	}
 	return res, rows.Err()
 }
@@ -246,7 +257,15 @@ func (m *MariaDBPureStorage) SelectCellKey(userID, dataID string) (*models.CellK
 		}
 		return nil, err
 	}
-	return m.parseCellKey(pb)
+	mck, err := m.parseCellKey(pb)
+	if err != nil {
+		return nil, err
+	}
+
+	if mck.UserID != userID || mck.DataID != dataID {
+		return nil, errors.New("user id or data id mismatch")
+	}
+	return mck, nil
 }
 
 func (m *MariaDBPureStorage) InsertCellKey(key *models.CellKey) error {
@@ -355,10 +374,13 @@ func (m *MariaDBPureStorage) SelectRoles(roleNames ...string) ([]*models.Role, e
 		if err != nil {
 			return nil, err
 		}
+		if !contains(roleNames, rec.RoleName) {
+			return nil, errors.New("role name mismatch")
+		}
 		res = append(res, rec)
 	}
 	if len(res) != len(roleNames) {
-		return nil, errors.New("role names mismatch")
+		return nil, errors.New("roles number mismatch")
 	}
 	return res, rows.Err()
 }
@@ -435,7 +457,15 @@ func (m *MariaDBPureStorage) SelectRoleAssignment(roleName, userID string) (*mod
 		WHERE user_id=? AND role_name=?;`, userID, roleName); err != nil {
 		return nil, err
 	}
-	return m.parseRoleAssignment(pb)
+
+	mra, err := m.parseRoleAssignment(pb)
+	if err != nil {
+		return nil, err
+	}
+	if mra.UserID != userID || mra.RoleName != roleName {
+		return nil, errors.New("user id or role name mismatch")
+	}
+	return mra, nil
 }
 
 func (m *MariaDBPureStorage) DeleteRoleAssignments(roleName string, userIDs ...string) error {
@@ -495,7 +525,14 @@ func (m *MariaDBPureStorage) SelectGrantKey(userID string, keyID []byte) (*model
 		WHERE user_id=? AND key_id=?;`, userID, keyID); err != nil {
 		return nil, err
 	}
-	return m.parseGrantKey(pb)
+	mgk, err := m.parseGrantKey(pb)
+	if err != nil {
+		return nil, err
+	}
+	if mgk.UserID != userID || !bytes.Equal(mgk.KeyID, keyID) {
+		return nil, errors.New("user id or key id mismatch")
+	}
+	return mgk, nil
 }
 
 func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error) {
@@ -518,6 +555,9 @@ func (m *MariaDBPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.Gr
 		rec, err := m.parseGrantKey(pb)
 		if err != nil {
 			return nil, err
+		}
+		if recordVersion != rec.RecordVersion {
+			return nil, errors.New("record version mismatch")
 		}
 		res = append(res, rec)
 	}

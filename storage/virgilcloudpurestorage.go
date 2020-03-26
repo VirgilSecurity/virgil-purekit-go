@@ -37,6 +37,7 @@
 package storage
 
 import (
+	"bytes"
 	"errors"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/clients"
@@ -72,7 +73,14 @@ func (v *VirgilCloudPureStorage) SelectUser(userID string) (*models.UserRecord, 
 	if err != nil {
 		return nil, err
 	}
-	return v.Serializer.ParseUserRecord(rec)
+	mRec, err := v.Serializer.ParseUserRecord(rec)
+	if err != nil {
+		return nil, err
+	}
+	if mRec.UserID != userID {
+		return nil, errors.New("user id mismatch")
+	}
+	return mRec, nil
 }
 
 func (v *VirgilCloudPureStorage) SelectUsers(userIDs ...string) ([]*models.UserRecord, error) {
@@ -97,7 +105,7 @@ func (v *VirgilCloudPureStorage) SelectUsers(userIDs ...string) ([]*models.UserR
 			return nil, err
 		}
 		if !contains(userIDs, rec.UserID) {
-			return nil, errors.New("returned user record userID mismatch")
+			return nil, errors.New("userID mismatch")
 		}
 		recs = append(recs, rec)
 	}
@@ -124,7 +132,14 @@ func (v *VirgilCloudPureStorage) SelectCellKey(userID, dataID string) (*models.C
 		}
 		return nil, err
 	}
-	return v.Serializer.ParseCellKey(key)
+	mKey, err := v.Serializer.ParseCellKey(key)
+	if err != nil {
+		return nil, err
+	}
+	if mKey.UserID != userID || mKey.DataID != dataID {
+		return nil, errors.New("cell key id or user id mismatch")
+	}
+	return mKey, nil
 }
 
 func (v *VirgilCloudPureStorage) InsertCellKey(key *models.CellKey) error {
@@ -230,7 +245,15 @@ func (v *VirgilCloudPureStorage) SelectRoleAssignment(roleName, userID string) (
 	if err != nil {
 		return nil, err
 	}
-	return v.Serializer.ParseRoleAssignment(ra)
+
+	mra, err := v.Serializer.ParseRoleAssignment(ra)
+	if err != nil {
+		return nil, err
+	}
+	if mra.RoleName != roleName || mra.UserID != userID {
+		return nil, errors.New("role name or user id mismatch")
+	}
+	return mra, nil
 }
 
 func (v *VirgilCloudPureStorage) DeleteRoleAssignments(roleName string, userIDs ...string) error {
@@ -266,7 +289,14 @@ func (v *VirgilCloudPureStorage) SelectGrantKey(userID string, keyID []byte) (*m
 		return nil, err
 	}
 
-	return v.Serializer.ParseGrantKey(gk)
+	mgk, err := v.Serializer.ParseGrantKey(gk)
+	if err != nil {
+		return nil, err
+	}
+	if mgk.UserID != userID || !bytes.Equal(mgk.KeyID, keyID) {
+		return nil, errors.New("user id or key id mismatch")
+	}
+	return mgk, nil
 }
 
 func (v *VirgilCloudPureStorage) SelectGrantKeys(recordVersion uint32) ([]*models.GrantKey, error) {
