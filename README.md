@@ -1,7 +1,9 @@
 # Virgil PureKit Go 
 
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-purekit-go.png?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-purekit-go)
+[![Release version](https://img.shields.io/github/v/release/VirgilSecurity/virgil-purekit-go)](https://github.com/VirgilSecurity/virgil-purekit-go/releases)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
+[![API Reference](https://img.shields.io/badge/API%20reference-PureKit--Go-green)](https://pkg.go.dev/github.com/VirgilSecurity/virgil-purekit-go/v3?tab=doc/)
 
 [Introduction](#introduction) | [Features](#features)  | [Benefits](#benefits) | [Installation](#installation) | [Resources](#resources) | [License](#license) | [Support](#support)
 
@@ -54,6 +56,7 @@ Navigate to our [Developer Documentation](https://developer.virgilsecurity.com/d
 
 - [PureKit Product Page](https://virgilsecurity.com/purekit/)
 - [PureKit Documentation](https://developer.virgilsecurity.com/docs/purekit) - start integrating PureKit into your project with our detailed guides.
+- [PureKit API Reference](https://pkg.go.dev/github.com/VirgilSecurity/virgil-purekit-go/v3?tab=doc)
 - [MariaDB Demo](https://github.com/VirgilSecurity/virgil-mariadb-demo) - a simple web application that illustrates how Virgil PureKit can be used with MariaDB to store and share data in the most secure way.
 - [Virgil PHE WhitePaper](https://virgilsecurity.com/wp-content/uploads/2018/11/PHE-Whitepaper-2018.pdf) - foundation principles of the Password-Hardened Encryption (PHE) protocol.
 
