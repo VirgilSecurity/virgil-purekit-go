@@ -236,15 +236,15 @@ func (p *PureCrypto) DecryptSymmetricWithNewNonce(ciphertext, ad, key []byte) ([
 	return p.pheCipher.AuthDecrypt(ciphertext, ad, key)
 }
 func (p *PureCrypto) GenerateUserKey() (crypto.PrivateKey, error) {
-	return p.Crypto.GenerateKeypairForType(crypto.FAST_EC_ED25519)
+	return p.Crypto.GenerateKeypairForType(crypto.Ed25519)
 }
 
 func (p *PureCrypto) GenerateRoleKey() (crypto.PrivateKey, error) {
-	return p.Crypto.GenerateKeypairForType(crypto.FAST_EC_ED25519)
+	return p.Crypto.GenerateKeypairForType(crypto.Ed25519)
 }
 
 func (p *PureCrypto) GenerateCellKey() (crypto.PrivateKey, error) {
-	return p.Crypto.GenerateKeypairForType(crypto.FAST_EC_ED25519)
+	return p.Crypto.GenerateKeypairForType(crypto.Ed25519)
 }
 
 func (p *PureCrypto) ImportPrivateKey(data []byte) (crypto.PrivateKey, error) {

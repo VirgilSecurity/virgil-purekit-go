@@ -56,7 +56,7 @@ func (c *Client) getClient() *client.Client {
 	c.once.Do(func() {
 		if c.HTTPClient == nil {
 			c.HTTPClient = client.NewClient(c.URL,
-				client.VirgilProduct("PureKit", "v3.0.0"),
+				client.VirgilProduct("PureKit", "v3.0.1"),
 				client.DefaultCodec(&ProtobufCodec{}),
 				client.ErrorHandler(DefaultErrorHandler),
 			)
