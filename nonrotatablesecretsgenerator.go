@@ -52,11 +52,11 @@ func GenerateNonRotatableSecrets(c *crypto.Crypto, masterSecret []byte) (*NonRot
 	rng := foundation.NewKeyMaterialRng()
 	rng.ResetKeyMaterial(masterSecret)
 
-	vksp, err := c.GenerateKeypairForTypeWithCustomRng(rng, crypto.FAST_EC_ED25519)
+	vksp, err := c.GenerateKeypairForTypeWithCustomRng(rng, crypto.Ed25519)
 	if err != nil {
 		return nil, err
 	}
-	oksp, err := c.GenerateKeypairForTypeWithCustomRng(rng, crypto.FAST_EC_ED25519)
+	oksp, err := c.GenerateKeypairForTypeWithCustomRng(rng, crypto.Ed25519)
 	if err != nil {
 		return nil, err
 	}
