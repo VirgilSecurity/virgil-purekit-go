@@ -34,6 +34,8 @@
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  */
 
+//go:build integration
+
 package purekit
 
 import (
@@ -53,13 +55,13 @@ import (
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
 
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/phe"
+	"github.com/VirgilSecurity/virgil-crypto-c/wrappers/go/phe"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/storage"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
+	"github.com/VirgilSecurity/virgil-sdk-go/v7/crypto"
 )
 
 var envs = []string{"dev", "stg", "pro"}

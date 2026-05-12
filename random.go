@@ -39,7 +39,7 @@ package purekit
 import (
 	"fmt"
 
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/foundation"
+	"github.com/VirgilSecurity/virgil-crypto-c/wrappers/go/foundation"
 )
 
 var random foundation.Random

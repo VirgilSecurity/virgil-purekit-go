@@ -39,8 +39,8 @@ package purekit
 import (
 	"errors"
 
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/foundation"
+	"github.com/VirgilSecurity/virgil-sdk-go/v7/crypto"
+	"github.com/VirgilSecurity/virgil-crypto-c/wrappers/go/foundation"
 )
 
 const NonrotatableMasterSecretLength = 32

@@ -36,7 +36,7 @@
 
 package purekit
 
-import "github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
+import "github.com/VirgilSecurity/virgil-sdk-go/v7/crypto"
 
 type NonRotatableSecrets struct {
 	Vksp, Oksp crypto.PrivateKey

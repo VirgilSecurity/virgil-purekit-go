@@ -42,7 +42,7 @@ import (
 	"net/http"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
+	"github.com/VirgilSecurity/virgil-sdk-go/v7/common/client"
 )
 
 //PureClient implements API request layer
