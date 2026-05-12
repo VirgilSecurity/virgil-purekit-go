@@ -19,6 +19,3 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-// Replace until virgil-sdk-go v7.0.0 is tagged on the remote.
-replace github.com/VirgilSecurity/virgil-sdk-go/v7 => ../virgil-sdk-go
