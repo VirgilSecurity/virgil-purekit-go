@@ -41,8 +41,8 @@ import (
 	"sync"
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/protos"
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/common/client"
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/errors"
+	"github.com/VirgilSecurity/virgil-sdk-go/v7/common/client"
+	"github.com/VirgilSecurity/virgil-sdk-go/v7/errors"
 )
 
 type Client struct {

@@ -41,7 +41,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto/wrapper/foundation"
+	"github.com/VirgilSecurity/virgil-crypto-c/wrappers/go/foundation"
 
 	"github.com/pkg/errors"
 
@@ -51,7 +51,7 @@ import (
 
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/models"
 	"github.com/VirgilSecurity/virgil-purekit-go/v3/storage"
-	"github.com/VirgilSecurity/virgil-sdk-go/v6/crypto"
+	"github.com/VirgilSecurity/virgil-sdk-go/v7/crypto"
 )
 
 type Pure struct {
